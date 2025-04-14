@@ -266,3 +266,8 @@ includeBuild("placeholder")
 includeProject(":mpp")
 includeProject(":window:window-core")
 includeProject(":performance:performance-annotation")
+
+includeProject(":wear:compose:compose-foundation")
+includeProject(":wear:compose:compose-material")
+includeProject(":wear:compose:compose-material-core")
+includeProject(":wear:compose:compose-navigation")
