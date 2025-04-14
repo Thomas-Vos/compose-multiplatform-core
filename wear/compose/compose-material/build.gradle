@@ -21,49 +21,71 @@
  * Please use that script when creating a new project, rather than copying an existing project and
  * modifying its settings.
  */
+
+import androidx.build.AndroidXComposePlugin
+import androidx.build.JetbrainsAndroidXPlugin
 import androidx.build.LibraryType
 
 plugins {
     id("AndroidXPlugin")
     id("com.android.library")
     id("AndroidXComposePlugin")
-    id("org.jetbrains.kotlin.android")
+    id("JetbrainsAndroidXPlugin")
 }
 
-dependencies {
-    api("androidx.compose.foundation:foundation:1.7.0")
-    api("androidx.compose.ui:ui:1.7.0")
-    api("androidx.compose.ui:ui-text:1.7.0")
-    api("androidx.compose.runtime:runtime:1.7.0")
-    api(project(":wear:compose:compose-foundation"))
+AndroidXComposePlugin.applyAndConfigureKotlinPlugin(project)
+JetbrainsAndroidXPlugin.applyAndConfigure(project)
 
-    implementation(libs.kotlinStdlib)
-    implementation("androidx.compose.animation:animation:1.7.0")
-    implementation("androidx.compose.material:material-icons-core:1.7.0")
-    implementation("androidx.compose.material:material-ripple:1.7.0")
-    implementation("androidx.compose.ui:ui-util:1.7.0")
-    implementation(project(":wear:compose:compose-material-core"))
-    implementation("androidx.profileinstaller:profileinstaller:1.4.0")
-    implementation("androidx.lifecycle:lifecycle-common:2.7.0")
+androidXComposeMultiplatform {
+    android()
+}
 
-    // This :foundation dependency can be removed once the material libraries are updated to use
-    // 1.7.0 stable.
-    androidTestImplementation(project(":compose:foundation:foundation"))
-    androidTestImplementation(project(":compose:ui:ui-test"))
-    androidTestImplementation(project(":compose:ui:ui-test-junit4"))
-    androidTestImplementation(project(":compose:test-utils"))
-    androidTestImplementation(project(":test:screenshot:screenshot"))
-    androidTestImplementation(libs.testRunner)
-    androidTestImplementation(libs.truth)
+kotlin {
+    sourceSets {
+        androidMain {
+            dependencies {
+                api("androidx.compose.foundation:foundation:1.7.0")
+                api("androidx.compose.ui:ui:1.7.0")
+                api("androidx.compose.ui:ui-text:1.7.0")
+                api("androidx.compose.runtime:runtime:1.7.0")
+                api(project(":wear:compose:compose-foundation"))
 
-    testImplementation(libs.testRules)
-    testImplementation(libs.testRunner)
-    testImplementation(libs.junit)
+                implementation(libs.kotlinStdlib)
+                implementation("androidx.compose.animation:animation:1.7.0")
+                implementation("androidx.compose.material:material-icons-core:1.7.0")
+                implementation("androidx.compose.material:material-ripple:1.7.0")
+                implementation("androidx.compose.ui:ui-util:1.7.0")
+                implementation(project(":wear:compose:compose-material-core"))
+                implementation("androidx.profileinstaller:profileinstaller:1.4.0")
+                implementation("androidx.lifecycle:lifecycle-common:2.7.0")
+            }
+        }
+
+        androidInstrumentedTest {
+            dependencies {
+                // This :foundation dependency can be removed once the material libraries are updated to use
+                // 1.7.0 stable.
+                implementation(project(":compose:foundation:foundation"))
+                implementation(project(":compose:ui:ui-test"))
+                implementation(project(":compose:ui:ui-test-junit4"))
+                implementation(project(":compose:test-utils"))
+                implementation(androidxArtifact(":test:screenshot:screenshot"))
+                implementation(libs.testRunner)
+                implementation(libs.truth)
+            }
+        }
+
+        androidTest {
+            dependencies {
+                implementation(libs.testRules)
+                implementation(libs.testRunner)
+                implementation(libs.junit)
+            }
+        }
+    }
 }
 
 android {
-    compileSdk 35
-
     defaultConfig {
         minSdkVersion 25
     }
@@ -82,7 +104,7 @@ android {
 
 androidx {
     name = "Android Wear Compose Material"
-    type = LibraryType.PUBLISHED_LIBRARY_ONLY_USED_BY_KOTLIN_CONSUMERS
+    type = LibraryType.PUBLISHED_LIBRARY
     inceptionYear = "2021"
     description = "WearOS Compose Material Library. This library makes it easier for developers " +
             "to write Jetpack Compose applications for Wearable devices that implement Wear " +
@@ -90,5 +112,4 @@ androidx {
             " libraries."
     legacyDisableKotlinStrictApiMode = true
     metalavaK2UastEnabled = false
-    samples(project(":wear:compose:compose-material-samples"))
 }
