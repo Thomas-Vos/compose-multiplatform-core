@@ -39,23 +39,36 @@ JetbrainsAndroidXPlugin.applyAndConfigure(project)
 
 androidXComposeMultiplatform {
     android()
+    desktop()
+    darwin()
+    js()
+    wasm()
 }
 
 kotlin {
     sourceSets {
-        androidMain {
+        commonMain {
             dependencies {
-                api("androidx.compose.foundation:foundation:1.7.0")
-                api("androidx.compose.ui:ui:1.7.0")
-                api("androidx.compose.ui:ui-text:1.7.0")
-                api("androidx.compose.runtime:runtime:1.7.0")
+                api(project(":compose:foundation:foundation"))
+                api(project(":compose:ui:ui"))
+                api(project(":compose:ui:ui-text"))
+                api(project(":compose:runtime:runtime"))
 
                 implementation(libs.kotlinStdlib)
-                implementation("androidx.compose.animation:animation:1.7.0")
-                implementation("androidx.compose.material:material-icons-core:1.7.0")
-                implementation("androidx.compose.material:material-ripple:1.7.0")
-                implementation("androidx.compose.ui:ui-util:1.7.0")
+                implementation(project(":compose:animation:animation"))
+                implementation("org.jetbrains.compose.material:material-icons-core:1.6.11") {
+                    // exclude dependencies, because they override local projects when we build 0.0.0-* version
+                    // (see https://repo1.maven.org/maven2/org/jetbrains/compose/material/material-icons-core-desktop/1.6.11/material-icons-core-desktop-1.6.11.module)
+                    exclude group: "org.jetbrains.compose.ui"
+                }
+                implementation(project(":compose:material:material-ripple"))
+                implementation(project(":compose:ui:ui-util"))
                 implementation(project(":wear:compose:compose-foundation"))
+            }
+        }
+
+        androidMain {
+            dependencies {
                 implementation("androidx.profileinstaller:profileinstaller:1.4.0")
             }
         }
@@ -79,6 +92,22 @@ kotlin {
                 implementation(libs.junit)
             }
         }
+
+        skikoMain.dependsOn(commonMain)
+        desktopMain.dependsOn(skikoMain)
+        nonJvmMain.dependsOn(skikoMain)
+        webMain.dependsOn(nonJvmMain)
+        jsMain.dependsOn(webMain)
+        wasmJsMain.dependsOn(webMain)
+        nativeMain.dependsOn(nonJvmMain)
+
+        skikoTest.dependsOn(commonTest)
+        desktopTest.dependsOn(skikoTest)
+        nonJvmTest.dependsOn(skikoTest)
+        webTest.dependsOn(nonJvmTest)
+        jsTest.dependsOn(webTest)
+        wasmJsTest.dependsOn(webTest)
+        nativeTest.dependsOn(nonJvmTest)
     }
 }
 
