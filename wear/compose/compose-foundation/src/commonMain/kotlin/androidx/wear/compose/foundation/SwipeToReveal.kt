@@ -63,7 +63,6 @@ import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.core.util.Predicate
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -280,10 +279,10 @@ internal constructor(
     internal fun requireOffset(): Float = swipeableState.requireOffset()
 
     private fun confirmValueChangeAndReset(
-        confirmValueChange: Predicate<RevealValue>,
+        confirmValueChange: (RevealValue) -> Boolean,
         revealValue: RevealValue,
     ): Boolean {
-        val canChangeValue = confirmValueChange.test(revealValue)
+        val canChangeValue = confirmValueChange(revealValue)
         val currentState = this
         // Update the state if the reveal value is changing to a different value than Covered.
         if (canChangeValue && revealValue != RevealValue.Covered) {

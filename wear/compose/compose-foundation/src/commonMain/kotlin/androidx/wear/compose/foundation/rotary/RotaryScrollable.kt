@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 The Android Open Source Project
+ * Copyright 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package androidx.wear.compose.foundation.rotary
 
-import android.view.ViewConfiguration
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
@@ -40,8 +39,9 @@ import androidx.compose.ui.input.rotary.RotaryInputModifierNode
 import androidx.compose.ui.input.rotary.RotaryScrollEvent
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.InspectorInfo
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -185,7 +185,7 @@ object RotaryScrollableDefaults {
         hapticFeedbackEnabled: Boolean = true
     ): RotaryScrollableBehavior {
         val isLowRes = isLowResInput()
-        val viewConfiguration = ViewConfiguration.get(LocalContext.current)
+        val viewConfiguration = LocalViewConfiguration.current
         val rotaryHaptics: RotaryHapticHandler =
             rememberRotaryHapticHandler(scrollableState, hapticFeedbackEnabled)
 
@@ -260,13 +260,6 @@ object RotaryScrollableDefaults {
                 },
             snapOffset = snapOffset,
             hapticFeedbackEnabled = hapticFeedbackEnabled
-        )
-
-    /** Returns whether the input is Low-res (a bezel) or high-res (a crown/rsb). */
-    @Composable
-    private fun isLowResInput(): Boolean =
-        LocalContext.current.packageManager.hasSystemFeature(
-            "android.hardware.rotaryencoder.lowres"
         )
 
     private const val ThresholdDivider: Float = 1.5f
@@ -660,8 +653,8 @@ internal class RotaryFlingHandler(
 
     private val rotaryVelocityTracker = RotaryVelocityTracker()
 
-    private val minFlingSpeed = viewConfiguration.scaledMinimumFlingVelocity.toFloat()
-    private val maxFlingSpeed = viewConfiguration.scaledMaximumFlingVelocity.toFloat()
+    private val minFlingSpeed = viewConfiguration.minimumFlingVelocity
+    private val maxFlingSpeed = viewConfiguration.maximumFlingVelocity
     private var latestEventTimestamp: Long = 0
 
     private var flingVelocity: Float = 0f
@@ -1221,3 +1214,7 @@ private inline fun debugLog(generateMsg: () -> String) {
         println("RotaryScroll: ${generateMsg()}")
     }
 }
+
+/** Returns whether the input is Low-res (a bezel) or high-res (a crown/rsb). */
+@Composable
+internal expect fun isLowResInput(): Boolean

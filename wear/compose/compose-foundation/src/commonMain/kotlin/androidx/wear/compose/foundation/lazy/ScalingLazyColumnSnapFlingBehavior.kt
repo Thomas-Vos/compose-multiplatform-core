@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package androidx.wear.compose.foundation.lazy
 
-import android.util.Log
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.DecayAnimationSpec
@@ -42,10 +41,10 @@ internal class ScalingLazyColumnSnapFlingBehavior(
 
     override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
         if (initialVelocity.isNaN()) {
-            Log.w(
-                "WearCompose",
-                "ScalingLazyColumnSnapFlingBehavior: ScrollScope.performFling called with initialVelocity NaN. Please use a valid value."
-            )
+            //Log.w(
+            //    "WearCompose",
+            //    "ScalingLazyColumnSnapFlingBehavior: ScrollScope.performFling called with initialVelocity NaN. Please use a valid value."
+            //)
             return Float.NaN
         }
 

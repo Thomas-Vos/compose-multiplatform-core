@@ -35,4 +35,7 @@ expect class RotaryScrollEvent {
      * platform-dependent.
      */
     val uptimeMillis: Long
+
+    /** The id for the input device that this event came from */
+    val inputDeviceId: Int
 }
