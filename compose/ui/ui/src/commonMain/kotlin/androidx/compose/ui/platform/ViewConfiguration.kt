@@ -54,6 +54,12 @@ interface ViewConfiguration {
         get() = DpSize(48.dp, 48.dp)
 
     /**
+     * The minimum velocity a fling have at any given time. This value should be in pixels/second.
+     */
+    val minimumFlingVelocity: Float
+        get() = Float.MAX_VALUE
+
+    /**
      * The maximum velocity a fling have at any given time. This value should be in pixels/second.
      */
     val maximumFlingVelocity: Float

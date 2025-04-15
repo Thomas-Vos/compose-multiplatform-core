@@ -16,7 +16,6 @@
 
 package androidx.wear.compose.foundation
 
-import android.os.Build
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.TweenSpec
@@ -27,7 +26,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -51,7 +49,6 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.unit.Dp
@@ -112,7 +109,7 @@ fun BasicSwipeToDismissBox(
     content: @Composable BoxScope.(isBackground: Boolean) -> Unit
 ) {
     val density = LocalDensity.current
-    val maxWidthPx = with(density) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+    val maxWidthPx = with(density) { screenWidthDp.toPx() }
     SideEffect {
         val anchors =
             mapOf(SwipeToDismissValue.Default to 0f, SwipeToDismissValue.Dismissed to maxWidthPx)
@@ -125,7 +122,7 @@ fun BasicSwipeToDismissBox(
             modifier
                 .fillMaxSize()
                 .then(
-                    if (userSwipeEnabled && Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU) {
+                    if (userSwipeEnabled) {
                         Modifier.systemGestureExclusion()
                     } else {
                         Modifier
@@ -142,15 +139,15 @@ fun BasicSwipeToDismissBox(
         val contentScrimColor = LocalSwipeToDismissContentScrimColor.current
 
         val progress by
-            remember(state) {
-                derivedStateOf {
-                    if (state.swipeableState.offset?.isNaN() == true || maxWidthPx == 0f) {
-                        0f
-                    } else {
-                        ((state.swipeableState.offset ?: 0f) / maxWidthPx).coerceIn(0f, 1f)
-                    }
+        remember(state) {
+            derivedStateOf {
+                if (state.swipeableState.offset?.isNaN() == true || maxWidthPx == 0f) {
+                    0f
+                } else {
+                    ((state.swipeableState.offset ?: 0f) / maxWidthPx).coerceIn(0f, 1f)
                 }
             }
+        }
         val isSwiping by remember { derivedStateOf { progress > 0 } }
         var squeezeMode by remember { mutableStateOf(true) }
         LaunchedEffect(state.isAnimationRunning) {
@@ -175,31 +172,31 @@ fun BasicSwipeToDismissBox(
                                 .then(
                                     if (!isBackground) {
                                         Modifier.graphicsLayer {
-                                                val scale =
-                                                    lerp(SCALE_MAX, SCALE_MIN, progress)
-                                                        .coerceIn(SCALE_MIN, SCALE_MAX)
-                                                val squeezeOffset =
-                                                    max(0f, (1f - scale) * maxWidthPx / 2f)
+                                            val scale =
+                                                lerp(SCALE_MAX, SCALE_MIN, progress)
+                                                    .coerceIn(SCALE_MIN, SCALE_MAX)
+                                            val squeezeOffset =
+                                                max(0f, (1f - scale) * maxWidthPx / 2f)
 
-                                                val translationX =
-                                                    if (squeezeMode) {
-                                                        // Squeeze
-                                                        squeezeOffset
-                                                    } else {
-                                                        // slide
-                                                        lerp(
-                                                            squeezeOffset,
-                                                            maxWidthPx,
-                                                            max(0f, progress - 0.7f) / 0.3f
-                                                        )
-                                                    }
+                                            val translationX =
+                                                if (squeezeMode) {
+                                                    // Squeeze
+                                                    squeezeOffset
+                                                } else {
+                                                    // slide
+                                                    lerp(
+                                                        squeezeOffset,
+                                                        maxWidthPx,
+                                                        max(0f, progress - 0.7f) / 0.3f
+                                                    )
+                                                }
 
-                                                this.translationX = translationX
-                                                scaleX = scale
-                                                scaleY = scale
-                                                clip = isRound && translationX > 0
-                                                shape = if (isRound) CircleShape else RectangleShape
-                                            }
+                                            this.translationX = translationX
+                                            scaleX = scale
+                                            scaleY = scale
+                                            clip = isRound && translationX > 0
+                                            shape = if (isRound) CircleShape else RectangleShape
+                                        }
                                             .background(backgroundScrimColor)
                                     } else Modifier
                                 )
@@ -358,7 +355,7 @@ class SwipeToDismissBoxState(
                     // drag and consume everything
                     return if (
                         edgeSwipeState.value == EdgeSwipeState.SwipingToDismiss &&
-                            source == NestedScrollSource.Drag
+                        source == NestedScrollSource.Drag
                     ) {
                         dispatchRawDelta(delta)
                         available
@@ -378,7 +375,7 @@ class SwipeToDismissBoxState(
                     // Consumes fling by SwipeToDismiss
                     return if (
                         edgeSwipeState.value == EdgeSwipeState.SwipingToDismiss ||
-                            edgeSwipeState.value == EdgeSwipeState.SwipeToDismissInProgress
+                        edgeSwipeState.value == EdgeSwipeState.SwipeToDismissInProgress
                     ) {
                         settle(velocity = toFling)
                         available
@@ -519,12 +516,14 @@ fun Modifier.edgeSwipeToDismiss(
                                             EdgeSwipeState.EdgeClickedWaitingForDirection
                                         else EdgeSwipeState.SwipingToPage
                                 }
+
                                 EdgeSwipeState.EdgeClickedWaitingForDirection -> {
                                     edgeSwipeState.value =
                                         if (change.position.x < change.previousPosition.x)
                                             EdgeSwipeState.SwipingToPage
                                         else EdgeSwipeState.SwipingToDismiss
                                 }
+
                                 else -> {} // Do nothing
                             }
                             // When finger is up - reset swipeState to WaitingForTouch
@@ -569,3 +568,8 @@ private const val SCALE_MIN = 0.7f
 private const val MAX_CONTENT_SCRIM_ALPHA = 0.3f
 private const val MAX_BACKGROUND_SCRIM_ALPHA = 0.5f
 private val SWIPE_TO_DISMISS_BOX_ANIMATION_SPEC = TweenSpec<Float>(200, 0, LinearOutSlowInEasing)
+
+internal expect fun Modifier.systemGestureExclusion(): Modifier
+
+internal expect val screenWidthDp: Dp
+    @Composable get

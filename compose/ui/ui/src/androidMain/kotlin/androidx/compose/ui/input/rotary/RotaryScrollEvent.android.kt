@@ -43,7 +43,7 @@ internal constructor(
     actual val uptimeMillis: Long,
 
     /** The id for the input device that this event came from */
-    val inputDeviceId: Int
+    actual val inputDeviceId: Int
 ) {
     override fun equals(other: Any?): Boolean =
         other is RotaryScrollEvent &&

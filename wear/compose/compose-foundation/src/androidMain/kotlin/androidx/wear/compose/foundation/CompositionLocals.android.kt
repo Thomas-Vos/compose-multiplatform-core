@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Android Open Source Project
+ * Copyright 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,8 @@ import android.os.Looper
 import android.provider.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.os.HandlerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,40 +45,12 @@ import kotlinx.coroutines.launch
 @get:ExperimentalWearFoundationApi
 @Suppress("OPT_IN_MARKER_ON_WRONG_TARGET")
 @ExperimentalWearFoundationApi
-val LocalReduceMotion: ProvidableCompositionLocal<ReduceMotion> = staticCompositionLocalOf {
+actual val LocalReduceMotion: ProvidableCompositionLocal<ReduceMotion> = staticCompositionLocalOf {
     ReduceMotion {
         val context = LocalContext.current.applicationContext
         val flow = getReduceMotionFlowFor(context)
         flow.collectAsStateWithLifecycle().value
     }
-}
-
-/**
- * CompositionLocal containing the background scrim color of [BasicSwipeToDismissBox].
- *
- * Defaults to [Color.Black] if not explicitly set.
- */
-val LocalSwipeToDismissBackgroundScrimColor: ProvidableCompositionLocal<Color> =
-    compositionLocalOf {
-        Color.Black
-    }
-
-/**
- * CompositionLocal containing the content scrim color of [BasicSwipeToDismissBox].
- *
- * Defaults to [Color.Black] if not explicitly set.
- */
-val LocalSwipeToDismissContentScrimColor: ProvidableCompositionLocal<Color> = compositionLocalOf {
-    Color.Black
-}
-
-/**
- * ReduceMotion provides a means for callers to determine whether an app should turn off animations
- * and screen movement.
- */
-@ExperimentalWearFoundationApi
-fun interface ReduceMotion {
-    @Composable fun enabled(): Boolean
 }
 
 private val reduceMotionCache = AtomicReference<StateFlow<Boolean>>()
@@ -96,29 +66,29 @@ private fun getReduceMotionFlowFor(applicationContext: Context): StateFlow<Boole
     return reduceMotionCache.updateAndGet {
         it
             ?: callbackFlow {
-                    val contentObserver =
-                        object :
-                            ContentObserver(HandlerCompat.createAsync(Looper.getMainLooper())) {
-                            override fun deliverSelfNotifications(): Boolean {
-                                // Returning true to receive change notification so that
-                                // the flow sends new value after it is initialized.
-                                return true
-                            }
-
-                            override fun onChange(selfChange: Boolean, uri: Uri?) {
-                                super.onChange(selfChange, uri)
-                                trySend(getReducedMotionSettingValue(resolver))
-                            }
+                val contentObserver =
+                    object :
+                        ContentObserver(HandlerCompat.createAsync(Looper.getMainLooper())) {
+                        override fun deliverSelfNotifications(): Boolean {
+                            // Returning true to receive change notification so that
+                            // the flow sends new value after it is initialized.
+                            return true
                         }
 
-                    coroutineScope.launch {
-                        resolver.registerContentObserver(reduceMotionUri, false, contentObserver)
-                        // Force send value when flow is initialized
-                        resolver.notifyChange(reduceMotionUri, contentObserver)
+                        override fun onChange(selfChange: Boolean, uri: Uri?) {
+                            super.onChange(selfChange, uri)
+                            trySend(getReducedMotionSettingValue(resolver))
+                        }
                     }
 
-                    awaitClose { resolver.unregisterContentObserver(contentObserver) }
+                coroutineScope.launch {
+                    resolver.registerContentObserver(reduceMotionUri, false, contentObserver)
+                    // Force send value when flow is initialized
+                    resolver.notifyChange(reduceMotionUri, contentObserver)
                 }
+
+                awaitClose { resolver.unregisterContentObserver(contentObserver) }
+            }
                 .stateIn(
                     MainScope(),
                     SharingStarted.WhileSubscribed(5000),

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Android Open Source Project
+ * Copyright 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,20 @@
 package androidx.wear.compose.foundation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.unit.Dp
 
-@Composable
-internal fun isRoundDevice(): Boolean {
-    val configuration = LocalConfiguration.current
-    return remember(configuration) { configuration.isScreenRound }
-}
+internal actual fun Modifier.systemGestureExclusion(): Modifier =
+    this
+
+internal actual val screenWidthDp: Dp
+    @Composable
+    get() {
+        val density = LocalDensity.current
+        val windowInfo = LocalWindowInfo.current
+        return with(density) {
+            windowInfo.containerSize.width.toDp()
+        }
+    }

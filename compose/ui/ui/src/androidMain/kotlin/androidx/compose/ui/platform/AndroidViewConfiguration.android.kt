@@ -47,6 +47,9 @@ class AndroidViewConfiguration(private val viewConfiguration: android.view.ViewC
                 super.handwritingSlop
             }
 
+    override val minimumFlingVelocity: Float
+        get() = viewConfiguration.scaledMinimumFlingVelocity.toFloat()
+
     override val maximumFlingVelocity: Float
         get() = viewConfiguration.scaledMaximumFlingVelocity.toFloat()
 

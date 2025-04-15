@@ -41,19 +41,25 @@ actual class RotaryScrollEvent internal constructor(
      */
     actual val uptimeMillis: Long,
 
+    /** The id for the input device that this event came from */
+    actual val inputDeviceId: Int
 ) {
     override fun equals(other: Any?): Boolean = other is RotaryScrollEvent &&
         other.verticalScrollPixels == verticalScrollPixels &&
         other.horizontalScrollPixels == horizontalScrollPixels &&
-        other.uptimeMillis == uptimeMillis
+        other.uptimeMillis == uptimeMillis &&
+        other.inputDeviceId == inputDeviceId
 
-    override fun hashCode(): Int = 0
-        .let { verticalScrollPixels.hashCode() }
-        .let { 31 * it + horizontalScrollPixels.hashCode() }
-        .let { 31 * it + uptimeMillis.hashCode() }
+    override fun hashCode(): Int =
+        0.let { verticalScrollPixels.hashCode() }
+            .let { 31 * it + horizontalScrollPixels.hashCode() }
+            .let { 31 * it + uptimeMillis.hashCode() }
+            .let { 31 * it + inputDeviceId.hashCode() }
 
-    override fun toString(): String = "RotaryScrollEvent(" +
-        "verticalScrollPixels=$verticalScrollPixels," +
-        "horizontalScrollPixels=$horizontalScrollPixels," +
-        "uptimeMillis=$uptimeMillis)"
+    override fun toString(): String =
+        "RotaryScrollEvent(" +
+            "verticalScrollPixels=$verticalScrollPixels," +
+            "horizontalScrollPixels=$horizontalScrollPixels," +
+            "uptimeMillis=$uptimeMillis," +
+            "deviceId=$inputDeviceId)"
 }

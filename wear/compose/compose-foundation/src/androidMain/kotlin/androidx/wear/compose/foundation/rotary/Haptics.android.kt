@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 The Android Open Source Project
+ * Copyright 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,28 +32,11 @@ import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.withContext
 
-/** Handles haptics for rotary usage */
-internal interface RotaryHapticHandler {
-
-    /** Handles haptics when scroll is used */
-    fun handleScrollHaptic(timestamp: Long, deltaInPixels: Float)
-
-    /** Handles haptics when scroll with snap is used */
-    fun handleSnapHaptic(timestamp: Long, deltaInPixels: Float)
-
-    /** Handles haptics when edge of the list is reached */
-    fun handleLimitHaptic(isStart: Boolean)
-}
-
 @Composable
-internal fun rememberRotaryHapticHandler(
+internal actual fun rememberRotaryHapticHandler(
     scrollableState: ScrollableState,
     hapticsEnabled: Boolean
 ): RotaryHapticHandler =
@@ -210,50 +193,6 @@ private class CustomRotaryHapticHandler(
     }
 }
 
-/** Rotary haptic types */
-@JvmInline
-@VisibleForTesting
-internal value class RotaryHapticsType(private val type: Int) {
-    companion object {
-
-        /**
-         * A scroll ticking haptic. Similar to texture haptic - performed each time when a
-         * scrollable content is scrolled by a certain distance
-         */
-        public val ScrollTick: RotaryHapticsType = RotaryHapticsType(1)
-
-        /**
-         * An item focus (snap) haptic. Performed when a scrollable content is snapped to a specific
-         * item.
-         */
-        public val ScrollItemFocus: RotaryHapticsType = RotaryHapticsType(2)
-
-        /**
-         * A limit(overscroll) haptic. Performed when a list reaches the limit (start or end) and
-         * can't scroll further
-         */
-        public val ScrollLimit: RotaryHapticsType = RotaryHapticsType(3)
-    }
-}
-
-/** Remember disabled haptics handler */
-@Composable
-private fun rememberDisabledRotaryHapticHandler(): RotaryHapticHandler = remember {
-    object : RotaryHapticHandler {
-        override fun handleScrollHaptic(timestamp: Long, deltaInPixels: Float) {
-            // Do nothing
-        }
-
-        override fun handleSnapHaptic(timestamp: Long, deltaInPixels: Float) {
-            // Do nothing
-        }
-
-        override fun handleLimitHaptic(isStart: Boolean) {
-            // Do nothing
-        }
-    }
-}
-
 /** Rotary haptic feedback */
 private class RotaryHapticFeedbackProvider(
     private val view: View,
@@ -303,28 +242,5 @@ private const val DEBUG = false
 private inline fun debugLog(generateMsg: () -> String) {
     if (DEBUG) {
         println("RotaryHaptics: ${generateMsg()}")
-    }
-}
-
-/**
- * Throttling events within specified timeframe. Only first and last events will be received.
- *
- * For example, a flow emits elements 1 to 30, with a 100ms delay between them:
- * ```
- * val flow = flow {
- *     for (i in 1..30) {
- *         delay(100)
- *         emit(i)
- *     }
- * }
- * ```
- *
- * With timeframe=1000 only those integers will be received: 1, 10, 20, 30 .
- */
-@VisibleForTesting
-internal fun <T> Flow<T>.throttleLatest(timeframe: Long): Flow<T> = flow {
-    conflate().collect {
-        emit(it)
-        delay(timeframe)
     }
 }
