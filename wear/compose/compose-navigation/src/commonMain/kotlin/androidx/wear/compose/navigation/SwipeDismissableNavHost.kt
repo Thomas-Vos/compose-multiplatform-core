@@ -16,8 +16,7 @@
 
 package androidx.wear.compose.navigation
 
-import android.util.Log
-import androidx.activity.compose.BackHandler
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.CubicBezierEasing
@@ -37,11 +36,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.util.lerp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -145,7 +144,7 @@ public fun SwipeDismissableNavHost(
  * @param state State containing information about ongoing swipe and animation.
  * @throws IllegalArgumentException if no WearNavigation.Destination is on the navigation backstack.
  */
-@OptIn(ExperimentalWearFoundationApi::class)
+@OptIn(ExperimentalWearFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 public fun SwipeDismissableNavHost(
     navController: NavHostController,
@@ -208,7 +207,7 @@ public fun SwipeDismissableNavHost(
                 "3. If the activity uses FLAG_ACTIVITY_NEW_TASK you should also set " +
                 "FLAG_ACTIVITY_CLEAR_TASK to maintain the backstack consistency."
 
-        Log.w(TAG, warningText)
+        //Log.w(TAG, warningText)
     }
 
     val swipeState = state.swipeToDismissBoxState
@@ -504,10 +503,7 @@ private fun BoxedStackEntryContent(
 }
 
 @Composable
-private fun isRoundDevice(): Boolean {
-    val configuration = LocalConfiguration.current
-    return remember(configuration) { configuration.isScreenRound }
-}
+internal expect fun isRoundDevice(): Boolean
 
 private const val TAG = "SwipeDismissableNavHost"
 private const val NAV_HOST_ENTER_TRANSITION_DURATION_SHORT = 100
