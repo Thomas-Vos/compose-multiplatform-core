@@ -26,47 +26,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.materialcore.isRoundDevice
 
-/** Possible combinations for vignette state. */
-@kotlin.jvm.JvmInline
-public value class VignettePosition constructor(private val key: Int) {
-    internal fun drawTop(): Boolean {
-        return when (key) {
-            1 -> false
-            else -> {
-                true
-            }
-        }
-    }
-
-    internal fun drawBottom(): Boolean {
-        return when (key) {
-            0 -> false
-            else -> {
-                true
-            }
-        }
-    }
-
-    companion object {
-        /** Only the top part of the vignette is displayed. */
-        val Top = VignettePosition(0)
-
-        /** Only the bottom part of the vignette is displayed. */
-        val Bottom = VignettePosition(1)
-
-        /** Both the top and bottom of the vignette is displayed. */
-        val TopAndBottom = VignettePosition(2)
-    }
-
-    override fun toString(): String {
-        return when (this) {
-            Top -> "VignetteValue.Top"
-            Bottom -> "VignetteValue.Bottom"
-            else -> "VignetteValue.Both"
-        }
-    }
-}
-
 /**
  * Vignette is whole screen decoration used to blur the top and bottom of the edges of a wearable
  * screen when scrolling content is displayed. The vignette is split between a top and bottom image
@@ -82,9 +41,9 @@ public value class VignettePosition constructor(private val key: Int) {
  * @param modifier optional Modifier for the root of the [Vignette]
  */
 @Composable
-public fun Vignette(
+public actual fun Vignette(
     vignettePosition: VignettePosition,
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
 ) {
 
     Box(modifier = modifier.fillMaxSize()) {

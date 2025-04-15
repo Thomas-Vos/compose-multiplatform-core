@@ -32,26 +32,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 
-/**
- * A functional interface for providing the state of touch exploration services. It is strongly
- * discouraged to make logic conditional based on state of accessibility services. Please consult
- * with accessibility experts before making such change.
- */
-public fun interface TouchExplorationStateProvider {
-
-    /**
-     * Returns the touch exploration service state wrapped in a [State] to allow composables to
-     * attach the state to itself. This will allow composables to react to change in service state,
-     * if required.
-     */
-    @Composable fun touchExplorationState(): State<Boolean>
-}
 
 /**
  * The default implementation of [TouchExplorationStateProvider]. It depends on the state of
  * accessibility services to determine the current state of touch exploration services.
  */
-internal class DefaultTouchExplorationStateProvider : TouchExplorationStateProvider {
+internal actual class DefaultTouchExplorationStateProvider : TouchExplorationStateProvider {
 
     @Composable
     public override fun touchExplorationState(): State<Boolean> {
@@ -102,7 +88,7 @@ internal class DefaultTouchExplorationStateProvider : TouchExplorationStateProvi
 
         private var accessibilityEnabled by mutableStateOf(accessibilityManager.isEnabled)
         private var touchExplorationEnabled by
-            mutableStateOf(accessibilityManager.isTouchExplorationEnabled)
+        mutableStateOf(accessibilityManager.isTouchExplorationEnabled)
 
         override val value: Boolean
             get() = accessibilityEnabled && touchExplorationEnabled
