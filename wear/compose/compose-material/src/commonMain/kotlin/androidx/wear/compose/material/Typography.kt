@@ -262,7 +262,7 @@ private const val DefaultIncludeFontPadding = false
 
 internal val DefaultTextStyle =
     TextStyle.Default.copy(
-        platformStyle = PlatformTextStyle(includeFontPadding = DefaultIncludeFontPadding)
+        // TODO: platformStyle = PlatformTextStyle(includeFontPadding = DefaultIncludeFontPadding)
     )
 
 /**
