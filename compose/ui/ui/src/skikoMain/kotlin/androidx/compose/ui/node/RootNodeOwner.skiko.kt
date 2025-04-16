@@ -398,7 +398,9 @@ internal class RootNodeOwner(
 
         @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
         override val fontLoader = androidx.compose.ui.text.platform.FontLoader()
-        override val fontFamilyResolver = createFontFamilyResolver()
+        override val fontFamilyResolver by lazy {
+            createFontFamilyResolver()
+        }
         override val layoutDirection get() = _layoutDirection
         override var showLayoutBounds = false
             @InternalCoreApi

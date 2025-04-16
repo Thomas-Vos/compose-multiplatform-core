@@ -290,15 +290,17 @@ class FontLoadResult(val typeface: SkTypeface?, val aliases: List<String>)
 
 internal class FontCache {
     internal val fonts = FontCollection()
-    private val fontProvider = TypefaceFontProviderWithFallback()
+    // TODO: disabled due to fontconfig issues
+//    private val fontProvider = TypefaceFontProviderWithFallback()
     private val registered: MutableSet<String> = HashSet()
     private val typefacesCache: Cache<String, SkTypeface> = ExpireAfterAccessCache(
         60_000_000_000 // 1 minute
     )
 
     init {
-        fonts.setDefaultFontManager(FontMgrWithFallback(fontProvider))
-        fonts.setAssetFontManager(fontProvider)
+        // TODO: disabled due to fontconfig issues
+//        fonts.setDefaultFontManager(FontMgrWithFallback(fontProvider))
+//        fonts.setAssetFontManager(fontProvider)
     }
 
     internal fun load(font: PlatformFont): FontLoadResult {
@@ -320,10 +322,11 @@ internal class FontCache {
     }
 
     private fun ensureRegistered(typeface: SkTypeface, key: String) {
-        if (!registered.contains(key)) {
-            fontProvider.registerTypeface(typeface, key)
-            registered.add(key)
-        }
+        // TODO: disabled due to fontconfig issues
+//        if (!registered.contains(key)) {
+//            fontProvider.registerTypeface(typeface, key)
+//            registered.add(key)
+//        }
     }
 
     private fun ensureRegistered(fontFamily: FontFamily): List<String> =
