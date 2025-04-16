@@ -17,8 +17,6 @@
 package androidx.wear.compose.material
 
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier

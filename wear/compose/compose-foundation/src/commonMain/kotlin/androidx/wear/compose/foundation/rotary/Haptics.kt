@@ -20,6 +20,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import kotlin.jvm.JvmInline
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate

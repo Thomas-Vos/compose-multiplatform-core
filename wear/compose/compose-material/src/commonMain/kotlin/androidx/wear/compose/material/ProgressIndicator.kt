@@ -43,6 +43,7 @@ import androidx.wear.compose.material.ProgressIndicatorDefaults.RotationsPerCycl
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.round
 
 /**
  * Determinate <a
@@ -95,7 +96,7 @@ public fun CircularProgressIndicator(
     Spacer(
         modifier
             // trimming progress to 2 decimal digits
-            .progressSemantics(Math.round(progress * 100) / 100.0f)
+            .progressSemantics(round(progress * 100) / 100.0f)
             .size(ButtonCircularIndicatorDiameter)
             .focusable()
             .drawWithCache {
