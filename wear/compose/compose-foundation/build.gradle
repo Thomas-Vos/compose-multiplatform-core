@@ -44,6 +44,7 @@ androidXComposeMultiplatform {
     darwin()
     js()
     wasm()
+    linux()
 }
 
 kotlin {
@@ -103,6 +104,12 @@ kotlin {
                 implementation(libs.truth)
                 implementation(libs.mockitoAndroid5)
                 implementation(libs.testParameterInjector)
+            }
+        }
+
+        skikoMain {
+            dependencies {
+                implementation(libs.atomicFu)
             }
         }
 

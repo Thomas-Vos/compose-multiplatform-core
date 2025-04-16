@@ -44,6 +44,7 @@ androidXComposeMultiplatform {
     darwin()
     js()
     wasm()
+    linux()
 }
 
 kotlin {
@@ -58,11 +59,11 @@ kotlin {
 
                 implementation(libs.kotlinCoroutinesCore)
                 implementation(project(":compose:animation:animation"))
-                implementation("org.jetbrains.compose.material:material-icons-core:1.6.11") {
-                    // exclude dependencies, because they override local projects when we build 0.0.0-* version
-                    // (see https://repo1.maven.org/maven2/org/jetbrains/compose/material/material-icons-core-desktop/1.6.11/material-icons-core-desktop-1.6.11.module)
-                    exclude group: "org.jetbrains.compose.ui"
-                }
+//                implementation("org.jetbrains.compose.material:material-icons-core:1.6.11") {
+//                    // exclude dependencies, because they override local projects when we build 0.0.0-* version
+//                    // (see https://repo1.maven.org/maven2/org/jetbrains/compose/material/material-icons-core-desktop/1.6.11/material-icons-core-desktop-1.6.11.module)
+//                    exclude group: "org.jetbrains.compose.ui"
+//                }
                 implementation(project(":compose:material:material-ripple"))
                 implementation(project(":compose:ui:ui-util"))
                 implementation(project(":wear:compose:compose-material-core"))

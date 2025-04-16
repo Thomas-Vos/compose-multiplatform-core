@@ -17,8 +17,6 @@
 package androidx.wear.compose.materialcore
 
 import androidx.annotation.RestrictTo
-import androidx.compose.material.icons.materialIcon
-import androidx.compose.material.icons.materialPath
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.util.lerp
 import kotlin.math.roundToInt
