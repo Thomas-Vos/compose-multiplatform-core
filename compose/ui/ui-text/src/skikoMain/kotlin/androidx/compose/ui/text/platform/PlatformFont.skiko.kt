@@ -372,9 +372,9 @@ private val GenericFontFamiliesMapping: Map<String, List<String>> by lazy {
     when (currentPlatform()) {
         Platform.Linux ->
             mapOf(
-                FontFamily.SansSerif.name to listOf("Noto Sans", "DejaVu Sans", "Arial"),
-                FontFamily.Serif.name to listOf("Noto Serif", "DejaVu Serif", "Times New Roman"),
-                FontFamily.Monospace.name to listOf("Noto Sans Mono", "DejaVu Sans Mono", "Consolas"),
+                FontFamily.SansSerif.name to listOf("HarmonyOS Sans", "Noto Sans", "DejaVu Sans", "Arial"),
+                FontFamily.Serif.name to listOf("HarmonyOS Sans Condensed", "Noto Serif", "DejaVu Serif", "Times New Roman"),
+                FontFamily.Monospace.name to listOf("HarmonyOS Sans Digit", "Noto Sans Mono", "DejaVu Sans Mono", "Consolas"),
                 // better alternative?
                 FontFamily.Cursive.name to listOf("Comic Sans MS")
             )
