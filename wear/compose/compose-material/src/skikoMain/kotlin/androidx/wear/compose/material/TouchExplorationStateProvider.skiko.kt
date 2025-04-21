@@ -28,7 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 internal actual class DefaultTouchExplorationStateProvider : TouchExplorationStateProvider {
 
     @Composable
-    public override fun touchExplorationState(): State<Boolean> {
+    public actual override fun touchExplorationState(): State<Boolean> {
         return mutableStateOf(false)
     }
 }

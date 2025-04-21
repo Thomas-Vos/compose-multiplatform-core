@@ -40,7 +40,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 internal actual class DefaultTouchExplorationStateProvider : TouchExplorationStateProvider {
 
     @Composable
-    public override fun touchExplorationState(): State<Boolean> {
+    public actual override fun touchExplorationState(): State<Boolean> {
         val context = LocalContext.current
         val accessibilityManager = remember {
             context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager

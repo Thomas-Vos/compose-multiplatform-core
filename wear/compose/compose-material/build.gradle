@@ -67,6 +67,8 @@ kotlin {
                 implementation(project(":wear:compose:compose-material-core"))
 
                 implementation(project(":lifecycle:lifecycle-common"))
+
+                implementation(project(":lifecycle:lifecycle-runtime-compose"))
             }
         }
         androidMain {

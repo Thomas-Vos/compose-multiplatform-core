@@ -39,4 +39,7 @@ public fun interface TouchExplorationStateProvider {
  * The default implementation of [TouchExplorationStateProvider]. It depends on the state of
  * accessibility services to determine the current state of touch exploration services.
  */
-internal expect class DefaultTouchExplorationStateProvider() : TouchExplorationStateProvider
+internal expect class DefaultTouchExplorationStateProvider() : TouchExplorationStateProvider {
+    @Composable
+    override fun touchExplorationState(): State<Boolean>
+}
