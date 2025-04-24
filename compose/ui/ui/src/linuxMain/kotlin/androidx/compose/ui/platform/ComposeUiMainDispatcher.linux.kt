@@ -17,8 +17,5 @@
 package androidx.compose.ui.platform
 
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalCoroutinesApi::class)
-val ComposeUiMainDispatcher: CoroutineDispatcher = Dispatchers.Default.limitedParallelism(1)
+lateinit var ComposeUiMainDispatcher: CoroutineDispatcher
