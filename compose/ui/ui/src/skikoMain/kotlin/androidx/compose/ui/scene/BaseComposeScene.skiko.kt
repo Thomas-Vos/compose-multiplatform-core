@@ -36,6 +36,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerInputEvent
 import androidx.compose.ui.input.pointer.PointerKeyboardModifiers
 import androidx.compose.ui.input.pointer.PointerType
+import androidx.compose.ui.input.rotary.RotaryScrollEvent
 import androidx.compose.ui.node.SnapshotInvalidationTracker
 import androidx.compose.ui.platform.GlobalSnapshotManager
 import androidx.compose.ui.platform.LocalPlatformScreenReader
@@ -263,6 +264,12 @@ internal abstract class BaseComposeScene(
         }
     }
 
+    override fun sendRotaryEvent(event: RotaryScrollEvent): Boolean = postponeInvalidation("BaseComposeScene:sendRotaryEvent") {
+        processRotaryEvent(event).also {
+            recomposer.performScheduledEffects()
+        }
+    }
+
     private fun doMeasureAndLayout() {
         snapshotInvalidationTracker.onMeasureAndLayout()
         measureAndLayout()
@@ -275,6 +282,8 @@ internal abstract class BaseComposeScene(
     protected abstract fun processCancelPointerInput()
 
     protected abstract fun processKeyEvent(keyEvent: KeyEvent): Boolean
+
+    protected abstract fun processRotaryEvent(event: RotaryScrollEvent): Boolean
 
     protected abstract fun measureAndLayout()
 

@@ -35,6 +35,7 @@ import androidx.compose.ui.input.pointer.PointerButtons
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerKeyboardModifiers
 import androidx.compose.ui.input.pointer.PointerType
+import androidx.compose.ui.input.rotary.RotaryScrollEvent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.node.LayoutNode
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -240,6 +241,8 @@ interface ComposeScene {
      * @return true if the event was consumed by the content
      */
     fun sendKeyEvent(keyEvent: KeyEvent): Boolean
+
+    fun sendRotaryEvent(event: RotaryScrollEvent): Boolean
 
     /**
      * Perform hit test and return the [InteropView] associated with the resulting node
