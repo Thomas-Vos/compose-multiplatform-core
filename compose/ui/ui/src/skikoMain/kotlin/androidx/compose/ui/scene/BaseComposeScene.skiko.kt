@@ -222,7 +222,7 @@ internal abstract class BaseComposeScene(
             nativeEvent = nativeEvent,
             button = button
         ).also {
-            recomposer.performScheduledEffects()
+//            recomposer.performScheduledEffects()
         }
     }
 
@@ -250,7 +250,7 @@ internal abstract class BaseComposeScene(
             nativeEvent = nativeEvent,
             button = button
         ).also {
-            recomposer.performScheduledEffects()
+//            recomposer.performScheduledEffects()
         }
     }
 
@@ -260,13 +260,13 @@ internal abstract class BaseComposeScene(
 
     override fun sendKeyEvent(keyEvent: KeyEvent): Boolean = postponeInvalidation("BaseComposeScene:sendKeyEvent") {
         inputHandler.onKeyEvent(keyEvent).also {
-            recomposer.performScheduledEffects()
+//            recomposer.performScheduledEffects()
         }
     }
 
     override fun sendRotaryEvent(event: RotaryScrollEvent): Boolean = postponeInvalidation("BaseComposeScene:sendRotaryEvent") {
         processRotaryEvent(event).also {
-            recomposer.performScheduledEffects()
+//            recomposer.performScheduledEffects()
         }
     }
 
