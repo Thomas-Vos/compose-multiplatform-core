@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flow
 
 /** Handles haptics for rotary usage */
-internal interface RotaryHapticHandler {
+interface RotaryHapticHandler {
 
     /** Handles haptics when scroll is used */
     fun handleScrollHaptic(timestamp: Long, deltaInPixels: Float, inputDeviceId: Int, axis: Int)
