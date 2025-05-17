@@ -19,8 +19,12 @@ package androidx.wear.compose.foundation.rotary
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.runtime.Composable
 
+var rotaryHapticHandler: @Composable (scrollableState: ScrollableState) -> RotaryHapticHandler = {
+    rememberDisabledRotaryHapticHandler()
+}
+
 @Composable
 internal actual fun rememberRotaryHapticHandler(
     scrollableState: ScrollableState,
     hapticsEnabled: Boolean
-): RotaryHapticHandler = rememberDisabledRotaryHapticHandler()
+): RotaryHapticHandler = rotaryHapticHandler(scrollableState)
