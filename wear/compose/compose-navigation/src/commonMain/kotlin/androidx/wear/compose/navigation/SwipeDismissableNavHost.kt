@@ -256,6 +256,8 @@ public fun SwipeDismissableNavHost(
         }
     }
 
+    swipeState.currentValue // TODO: workaround for animation issues on Linux
+
     BasicSwipeToDismissBox(
         onDismissed = navigateBack,
         state = swipeState,
