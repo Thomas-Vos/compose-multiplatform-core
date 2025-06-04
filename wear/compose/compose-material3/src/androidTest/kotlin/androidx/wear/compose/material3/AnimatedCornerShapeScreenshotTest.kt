@@ -58,8 +58,15 @@ class AnimatedCornerShapeScreenshotTest {
     fun cutCornerShapeLtr() = verifyScreenshot {
         FilledIconButton(
             onClick = {},
-            shape =
-                CutCornerShape(topStart = 2.dp, topEnd = 4.dp, bottomEnd = 6.dp, bottomStart = 8.dp)
+            shapes =
+                IconButtonDefaults.shapes(
+                    CutCornerShape(
+                        topStart = 2.dp,
+                        topEnd = 4.dp,
+                        bottomEnd = 6.dp,
+                        bottomStart = 8.dp,
+                    )
+                ),
         ) {}
     }
 
@@ -68,13 +75,15 @@ class AnimatedCornerShapeScreenshotTest {
         verifyScreenshot(layoutDirection = LayoutDirection.Rtl) {
             FilledIconButton(
                 onClick = {},
-                shape =
-                    CutCornerShape(
-                        topStart = 2.dp,
-                        topEnd = 4.dp,
-                        bottomEnd = 6.dp,
-                        bottomStart = 8.dp
-                    )
+                shapes =
+                    IconButtonDefaults.shapes(
+                        CutCornerShape(
+                            topStart = 2.dp,
+                            topEnd = 4.dp,
+                            bottomEnd = 6.dp,
+                            bottomStart = 8.dp,
+                        )
+                    ),
             ) {}
         }
 
@@ -82,13 +91,15 @@ class AnimatedCornerShapeScreenshotTest {
     fun absoluteCutCornerShapeLtr() = verifyScreenshot {
         FilledIconButton(
             onClick = {},
-            shape =
-                AbsoluteCutCornerShape(
-                    topLeft = 2.dp,
-                    topRight = 4.dp,
-                    bottomRight = 6.dp,
-                    bottomLeft = 8.dp
-                )
+            shapes =
+                IconButtonDefaults.shapes(
+                    AbsoluteCutCornerShape(
+                        topLeft = 2.dp,
+                        topRight = 4.dp,
+                        bottomRight = 6.dp,
+                        bottomLeft = 8.dp,
+                    )
+                ),
         ) {}
     }
 
@@ -97,13 +108,15 @@ class AnimatedCornerShapeScreenshotTest {
         verifyScreenshot(layoutDirection = LayoutDirection.Rtl) {
             FilledIconButton(
                 onClick = {},
-                shape =
-                    AbsoluteCutCornerShape(
-                        topLeft = 2.dp,
-                        topRight = 4.dp,
-                        bottomRight = 6.dp,
-                        bottomLeft = 8.dp
-                    )
+                shapes =
+                    IconButtonDefaults.shapes(
+                        AbsoluteCutCornerShape(
+                            topLeft = 2.dp,
+                            topRight = 4.dp,
+                            bottomRight = 6.dp,
+                            bottomLeft = 8.dp,
+                        )
+                    ),
             ) {}
         }
 
@@ -111,13 +124,15 @@ class AnimatedCornerShapeScreenshotTest {
     fun absoluteRoundedCornerShapeLtr() = verifyScreenshot {
         FilledIconButton(
             onClick = {},
-            shape =
-                AbsoluteRoundedCornerShape(
-                    topLeft = 2.dp,
-                    topRight = 4.dp,
-                    bottomRight = 6.dp,
-                    bottomLeft = 8.dp
-                )
+            shapes =
+                IconButtonDefaults.shapes(
+                    AbsoluteRoundedCornerShape(
+                        topLeft = 2.dp,
+                        topRight = 4.dp,
+                        bottomRight = 6.dp,
+                        bottomLeft = 8.dp,
+                    )
+                ),
         ) {}
     }
 
@@ -126,19 +141,21 @@ class AnimatedCornerShapeScreenshotTest {
         verifyScreenshot(layoutDirection = LayoutDirection.Rtl) {
             FilledIconButton(
                 onClick = {},
-                shape =
-                    AbsoluteRoundedCornerShape(
-                        topLeft = 2.dp,
-                        topRight = 4.dp,
-                        bottomRight = 6.dp,
-                        bottomLeft = 8.dp
-                    )
+                shapes =
+                    IconButtonDefaults.shapes(
+                        AbsoluteRoundedCornerShape(
+                            topLeft = 2.dp,
+                            topRight = 4.dp,
+                            bottomRight = 6.dp,
+                            bottomLeft = 8.dp,
+                        )
+                    ),
             ) {}
         }
 
     private fun verifyScreenshot(
         layoutDirection: LayoutDirection = LayoutDirection.Ltr,
-        content: @Composable () -> Unit
+        content: @Composable () -> Unit,
     ) {
         rule.setContentWithTheme {
             CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {

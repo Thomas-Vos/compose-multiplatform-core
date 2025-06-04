@@ -41,21 +41,21 @@ val PickerDemos =
         ComposableDemo("No gradient") { PickerWithoutGradient() },
         ComposableDemo("Animate picker change") { PickerAnimateScrollToOption() },
         ComposableDemo("Sample Picker Group") { PickerGroupSample() },
-        ComposableDemo("Auto-centering Picker Group") { AutoCenteringPickerGroup() }
+        ComposableDemo("Auto-centering Picker Group") { AutoCenteringPickerGroup() },
     )
 
 @Composable
 fun PickerWithoutGradient() {
     val items = listOf("One", "Two", "Three", "Four", "Five")
     val state = rememberPickerState(items.size)
-    val contentDescription by remember { derivedStateOf { "${state.selectedOption + 1}" } }
+    val contentDescription by remember { derivedStateOf { "${state.selectedOptionIndex + 1}" } }
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Picker(
             readOnly = false,
             modifier = Modifier.size(100.dp, 100.dp),
             gradientRatio = 0.0f,
-            contentDescription = contentDescription,
-            state = state
+            contentDescription = { contentDescription },
+            state = state,
         ) {
             Text(items[it])
         }

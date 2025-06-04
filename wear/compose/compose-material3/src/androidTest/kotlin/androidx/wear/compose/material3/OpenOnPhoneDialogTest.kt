@@ -17,6 +17,9 @@
 package androidx.wear.compose.material3
 
 import android.os.Build
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,12 +28,15 @@ import androidx.compose.testutils.assertContainsColor
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeRight
 import androidx.test.filters.SdkSuppress
+import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 
@@ -40,10 +46,12 @@ class OpenOnPhoneDialogTest {
     @Test
     fun openOnPhone_supports_testtag() {
         rule.setContentWithTheme {
+            val style = OpenOnPhoneDialogDefaults.curvedTextStyle
             OpenOnPhoneDialog(
-                show = true,
+                visible = true,
                 modifier = Modifier.testTag(TEST_TAG),
                 onDismissRequest = {},
+                curvedText = { openOnPhoneDialogCurvedText(text = CurvedText, style = style) },
             )
         }
         rule.onNodeWithTag(TEST_TAG).assertExists()
@@ -51,13 +59,19 @@ class OpenOnPhoneDialogTest {
 
     @Test
     fun openOnPhone_supports_swipeToDismiss() {
+        var dismissCounter = 0
         rule.mainClock.autoAdvance = false
         rule.setContentWithTheme {
-            var showDialog by remember { mutableStateOf(true) }
+            var visible by remember { mutableStateOf(true) }
+            val style = OpenOnPhoneDialogDefaults.curvedTextStyle
             OpenOnPhoneDialog(
                 modifier = Modifier.testTag(TEST_TAG),
-                onDismissRequest = { showDialog = false },
-                show = showDialog
+                onDismissRequest = {
+                    visible = false
+                    dismissCounter++
+                },
+                visible = visible,
+                curvedText = { openOnPhoneDialogCurvedText(text = CurvedText, style = style) },
             )
         }
         rule.mainClock.advanceTimeBy(OpenOnPhoneDialogDefaults.DurationMillis / 2)
@@ -65,26 +79,87 @@ class OpenOnPhoneDialogTest {
         // Advancing time so that the dialog is dismissed
         rule.mainClock.advanceTimeBy(300)
         rule.onNodeWithTag(TEST_TAG).assertDoesNotExist()
+        Assert.assertEquals(1, dismissCounter)
     }
 
     @Test
     fun hides_openOnPhone_when_show_false() {
         rule.setContentWithTheme {
+            val style = OpenOnPhoneDialogDefaults.curvedTextStyle
             OpenOnPhoneDialog(
-                show = false,
+                visible = false,
                 modifier = Modifier.testTag(TEST_TAG),
                 onDismissRequest = {},
+                curvedText = { openOnPhoneDialogCurvedText(text = CurvedText, style = style) },
             )
         }
         rule.onNodeWithTag(TEST_TAG).assertDoesNotExist()
     }
 
+    @SdkSuppress(minSdkVersion = Build.VERSION_CODES.P)
     @Test
     fun openOnPhone_displays_icon() {
         rule.setContentWithTheme {
-            OpenOnPhoneDialog(onDismissRequest = {}, show = true) { TestImage(IconTestTag) }
+            val style = OpenOnPhoneDialogDefaults.curvedTextStyle
+            OpenOnPhoneDialog(
+                onDismissRequest = {},
+                visible = true,
+                curvedText = { openOnPhoneDialogCurvedText(text = CurvedText, style = style) },
+                modifier = Modifier.testTag(TEST_TAG),
+            ) {
+                Box(modifier = Modifier.fillMaxSize().background(Color.Red))
+            }
         }
-        rule.onNodeWithTag(IconTestTag).assertExists()
+        rule.onNodeWithTag(TEST_TAG).captureToImage().assertContainsColor(Color.Red)
+    }
+
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun openOnPhone_onDismissRequest_not_called_when_hidden() {
+        val visible = mutableStateOf(true)
+        var dismissCounter = 0
+        rule.setContentWithTheme {
+            val style = OpenOnPhoneDialogDefaults.curvedTextStyle
+            OpenOnPhoneDialog(
+                modifier = Modifier.testTag(TEST_TAG),
+                onDismissRequest = { dismissCounter++ },
+                durationMillis = 1000,
+                visible = visible.value,
+                curvedText = { openOnPhoneDialogCurvedText(text = CurvedText, style = style) },
+            )
+        }
+        rule.waitForIdle()
+        // First we have to wait until animation completes and goes into idle state.
+        // onDismissRequest will be called once it's finished - so dismissCounter will be 1.
+        Assert.assertEquals(1, dismissCounter)
+        visible.value = false
+        rule.waitUntilDoesNotExist(hasTestTag(TEST_TAG))
+
+        // However, onDismissRequest should not be called when show.value becomes false and dialog
+        // is hidden. That's why it should remain as 1.
+        Assert.assertEquals(1, dismissCounter)
+    }
+
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun openOnPhone_calls_onDismissRequest_on_timeout() {
+        val visible = mutableStateOf(true)
+        var dismissCounter = 0
+        rule.setContentWithTheme {
+            val style = OpenOnPhoneDialogDefaults.curvedTextStyle
+            OpenOnPhoneDialog(
+                modifier = Modifier.testTag(TEST_TAG),
+                onDismissRequest = {
+                    dismissCounter++
+                    visible.value = false
+                },
+                durationMillis = 100,
+                visible = visible.value,
+                curvedText = { openOnPhoneDialogCurvedText(text = CurvedText, style = style) },
+            )
+        }
+        rule.waitUntilDoesNotExist(hasTestTag(TEST_TAG))
+        Assert.assertEquals(1, dismissCounter)
     }
 
     @Test
@@ -92,7 +167,12 @@ class OpenOnPhoneDialogTest {
         var dismissed = false
         rule.mainClock.autoAdvance = false
         rule.setContentWithTheme {
-            OpenOnPhoneDialog(onDismissRequest = { dismissed = true }, show = true) {}
+            val style = OpenOnPhoneDialogDefaults.curvedTextStyle
+            OpenOnPhoneDialog(
+                onDismissRequest = { dismissed = true },
+                visible = true,
+                curvedText = { openOnPhoneDialogCurvedText(text = CurvedText, style = style) },
+            ) {}
         }
         // Timeout longer than default confirmation duration
         rule.mainClock.advanceTimeBy(OpenOnPhoneDialogDefaults.DurationMillis + 1000)
@@ -108,10 +188,12 @@ class OpenOnPhoneDialogTest {
         var expectedProgressIndicatorColor: Color = Color.Unspecified
         var expectedProgressTrackColor: Color = Color.Unspecified
         rule.setContentWithTheme {
+            val style = OpenOnPhoneDialogDefaults.curvedTextStyle
             OpenOnPhoneDialog(
                 onDismissRequest = {},
                 modifier = Modifier.testTag(TEST_TAG),
-                show = true
+                visible = true,
+                curvedText = { openOnPhoneDialogCurvedText(text = CurvedText, style = style) },
             )
             expectedIconColor = MaterialTheme.colorScheme.primary
             expectedIconContainerColor = MaterialTheme.colorScheme.primaryContainer
@@ -146,6 +228,7 @@ class OpenOnPhoneDialogTest {
         val customProgressIndicatorColor: Color = Color.Blue
         val customProgressTrackColor: Color = Color.Magenta
         rule.setContentWithTheme {
+            val style = OpenOnPhoneDialogDefaults.curvedTextStyle
             OpenOnPhoneDialog(
                 onDismissRequest = {},
                 modifier = Modifier.testTag(TEST_TAG),
@@ -154,9 +237,10 @@ class OpenOnPhoneDialogTest {
                         iconColor = customIconColor,
                         iconContainerColor = customIconContainerColor,
                         progressIndicatorColor = customProgressIndicatorColor,
-                        progressTrackColor = customProgressTrackColor
+                        progressTrackColor = customProgressTrackColor,
                     ),
-                show = true
+                visible = true,
+                curvedText = { openOnPhoneDialogCurvedText(text = CurvedText, style = style) },
             )
         }
         // Advance time by half of the default confirmation duration, so that the track and
@@ -174,3 +258,4 @@ class OpenOnPhoneDialogTest {
 }
 
 private const val IconTestTag = "icon"
+private const val CurvedText = "CurvedText"
