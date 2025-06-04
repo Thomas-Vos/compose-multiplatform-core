@@ -16,10 +16,9 @@
 
 package androidx.wear.compose.material3
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.collection.IntObjectMap
-import androidx.collection.MutableIntObjectMap
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,14 +34,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -51,6 +49,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -63,12 +62,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.wear.compose.material3.ButtonDefaults.buttonColors
+import androidx.wear.compose.material3.internal.Icons
 import androidx.wear.compose.material3.internal.Plurals
 import androidx.wear.compose.material3.internal.Strings
-import androidx.wear.compose.material3.internal.getPlurals
 import androidx.wear.compose.material3.internal.getString
 import androidx.wear.compose.material3.tokens.TimePickerTokens
 import androidx.wear.compose.materialcore.is24HourFormat
+import androidx.wear.compose.materialcore.isLargeScreen
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoField
@@ -99,7 +99,7 @@ import java.time.temporal.ChronoField
  */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TimePicker(
+public fun TimePicker(
     initialTime: LocalTime,
     onTimePicked: (LocalTime) -> Unit,
     modifier: Modifier = Modifier,
@@ -109,18 +109,26 @@ fun TimePicker(
     val inspectionMode = LocalInspectionMode.current
     val fullyDrawn = remember { Animatable(if (inspectionMode) 1f else 0f) }
 
-    val touchExplorationStateProvider = remember { DefaultTouchExplorationStateProvider() }
-    val touchExplorationServicesEnabled by touchExplorationStateProvider.touchExplorationState()
-    // When the time picker loads, none of the individual pickers are selected in talkback mode,
-    // otherwise hours picker should be focused.
-    val pickerGroupState =
-        if (touchExplorationServicesEnabled) {
-            rememberPickerGroupState(FocusableElementsTimePicker.NONE.index)
-        } else {
-            rememberPickerGroupState(FocusableElementsTimePicker.HOURS.index)
-        }
+    val touchExplorationServicesEnabled by
+        LocalTouchExplorationStateProvider.current.touchExplorationState()
+
+    /** The current selected [Picker] index. */
+    var selectedIndex: Int? by remember { mutableStateOf(null) }
+
+    LaunchedEffect(touchExplorationServicesEnabled) {
+        // When the time picker loads, none of the individual pickers are selected in talkback mode,
+        // otherwise hours picker should be focused.
+        selectedIndex =
+            if (touchExplorationServicesEnabled) {
+                null
+            } else {
+                FocusableElements.Hours.index
+            }
+    }
+
     val focusRequesterConfirmButton = remember { FocusRequester() }
 
+    val instructionHeadingString = getString(Strings.TimePickerHeading)
     val hourString = getString(Strings.TimePickerHour)
     val minuteString = getString(Strings.TimePickerMinute)
 
@@ -129,48 +137,53 @@ fun TimePicker(
         if (is12hour) {
             rememberPickerState(
                 initialNumberOfOptions = 12,
-                initiallySelectedOption = initialTime[ChronoField.CLOCK_HOUR_OF_AMPM] - 1,
+                initiallySelectedIndex = initialTime[ChronoField.CLOCK_HOUR_OF_AMPM] - 1,
             )
         } else {
             rememberPickerState(
                 initialNumberOfOptions = 24,
-                initiallySelectedOption = initialTime.hour,
+                initiallySelectedIndex = initialTime.hour,
             )
         }
     val minuteState =
         rememberPickerState(
             initialNumberOfOptions = 60,
-            initiallySelectedOption = initialTime.minute,
+            initiallySelectedIndex = initialTime.minute,
         )
 
-    val hoursContentDescription =
+    val context = LocalContext.current
+    val hoursContentDescription = {
         createDescription(
-            pickerGroupState,
-            if (is12hour) hourState.selectedOption + 1 else hourState.selectedOption,
+            context,
+            selectedIndex,
+            if (is12hour) hourState.selectedOptionIndex + 1 else hourState.selectedOptionIndex,
             hourString,
             Plurals.TimePickerHoursContentDescription,
         )
-    val minutesContentDescription =
+    }
+
+    val minutesContentDescription = {
         createDescription(
-            pickerGroupState,
-            minuteState.selectedOption,
+            context,
+            selectedIndex,
+            minuteState.selectedOptionIndex,
             minuteString,
             Plurals.TimePickerMinutesContentDescription,
         )
+    }
 
-    val thirdPicker = getOptionalThirdPicker(timePickerType, pickerGroupState, initialTime)
+    val thirdPicker = getOptionalThirdPicker(context, timePickerType, selectedIndex, initialTime)
 
-    val onPickerSelected =
-        { current: FocusableElementsTimePicker, next: FocusableElementsTimePicker ->
-            if (pickerGroupState.selectedIndex != current.index) {
-                pickerGroupState.selectedIndex = current.index
-            } else {
-                pickerGroupState.selectedIndex = next.index
-                if (next == FocusableElementsTimePicker.CONFIRM_BUTTON) {
-                    focusRequesterConfirmButton.requestFocus()
-                }
+    val onPickerSelected = { current: FocusableElements, next: FocusableElements ->
+        if (selectedIndex != current.index) {
+            selectedIndex = current.index
+        } else {
+            selectedIndex = next.index
+            if (next == FocusableElements.ConfirmButton) {
+                focusRequesterConfirmButton.requestFocus()
             }
         }
+    }
 
     Box(modifier = modifier.fillMaxSize().alpha(fullyDrawn.value)) {
         Column(
@@ -178,27 +191,42 @@ fun TimePicker(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(Modifier.height(14.dp))
-            val focusedPicker = FocusableElementsTimePicker[pickerGroupState.selectedIndex]
+            Spacer(Modifier.height(if (selectedIndex == null) 6.dp else 14.dp))
+
+            val focusedPicker = FocusableElements(selectedIndex)
             FontScaleIndependent {
                 val styles = getTimePickerStyles(timePickerType, thirdPicker)
-                Text(
-                    text =
+                val heading =
+                    selectedIndex?.let {
                         when {
-                            focusedPicker == FocusableElementsTimePicker.HOURS -> hourString
-                            focusedPicker == FocusableElementsTimePicker.MINUTES -> minuteString
-                            focusedPicker == FocusableElementsTimePicker.SECONDS_OR_PERIOD &&
+                            focusedPicker == FocusableElements.Hours -> hourString
+                            focusedPicker == FocusableElements.Minutes -> minuteString
+                            focusedPicker == FocusableElements.SecondsOrPeriod &&
                                 thirdPicker != null -> thirdPicker.label
                             else -> ""
-                        },
+                        }
+                    } ?: if (touchExplorationServicesEnabled) instructionHeadingString else ""
+
+                // Allow more room for the initial instruction heading under TalkBack
+                val maxTextLines = if (selectedIndex == null) 2 else 1
+                val textPaddingPercentage = 30f
+                val textModifier = if (selectedIndex == null) Modifier else Modifier.height(24.dp)
+
+                FadeLabel(
+                    text = heading,
+                    animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+                    modifier =
+                        textModifier
+                            .padding(
+                                horizontal =
+                                    PaddingDefaults.horizontalContentPadding(textPaddingPercentage)
+                            )
+                            .fillMaxWidth()
+                            .align(Alignment.CenterHorizontally),
                     color = colors.pickerLabelColor,
                     style = styles.labelTextStyle,
-                    maxLines = 1,
-                    modifier =
-                        Modifier.height(24.dp)
-                            .fillMaxWidth(0.76f)
-                            .align(Alignment.CenterHorizontally),
-                    textAlign = TextAlign.Center
+                    maxLines = maxTextLines,
+                    textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(styles.sectionVerticalPadding))
                 Row(
@@ -206,67 +234,91 @@ fun TimePicker(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                 ) {
-                    val pickerGroupItems =
-                        mutableListOf(
-                            PickerGroupItem(
-                                pickerState = hourState,
-                                modifier = Modifier.width(styles.optionWidth).fillMaxHeight(),
-                                onSelected = {
-                                    onPickerSelected(
-                                        FocusableElementsTimePicker.HOURS,
-                                        FocusableElementsTimePicker.MINUTES,
-                                    )
-                                },
-                                contentDescription = hoursContentDescription,
-                                option =
-                                    pickerTextOption(
-                                        textStyle = styles.optionTextStyle,
-                                        selectedContentColor = colors.selectedPickerContentColor,
-                                        unselectedContentColor =
-                                            colors.unselectedPickerContentColor,
-                                        indexToText = {
-                                            "%02d".format(if (is12hour) it + 1 else it)
-                                        },
-                                        optionHeight = styles.optionHeight,
-                                    ),
-                                spacing = styles.optionSpacing
-                            ),
-                            PickerGroupItem(
-                                pickerState = minuteState,
-                                modifier = Modifier.width(styles.optionWidth).fillMaxHeight(),
-                                onSelected = {
-                                    onPickerSelected(
-                                        FocusableElementsTimePicker.MINUTES,
-                                        if (timePickerType == TimePickerType.HoursMinutes24H) {
-                                            FocusableElementsTimePicker.CONFIRM_BUTTON
-                                        } else {
-                                            FocusableElementsTimePicker.SECONDS_OR_PERIOD
-                                        }
-                                    )
-                                },
-                                contentDescription = minutesContentDescription,
-                                option =
-                                    pickerTextOption(
-                                        textStyle = styles.optionTextStyle,
-                                        indexToText = { "%02d".format(it) },
-                                        selectedContentColor = colors.selectedPickerContentColor,
-                                        unselectedContentColor =
-                                            colors.unselectedPickerContentColor,
-                                        optionHeight = styles.optionHeight,
-                                    ),
-                                spacing = styles.optionSpacing
-                            ),
+
+                    // Pass a negative value as the selected picker index when none is selected.
+                    PickerGroup(
+                        selectedPickerState =
+                            when {
+                                focusedPicker == FocusableElements.Hours -> hourState
+                                focusedPicker == FocusableElements.Minutes -> minuteState
+                                focusedPicker == FocusableElements.SecondsOrPeriod &&
+                                    thirdPicker != null -> thirdPicker.state
+                                else -> null
+                            },
+                        modifier = Modifier.fillMaxWidth(),
+                        autoCenter = false,
+                    ) {
+                        // Hours Picker
+                        PickerGroupItem(
+                            pickerState = hourState,
+                            modifier = Modifier.width(styles.optionWidth).fillMaxHeight(),
+                            selected = selectedIndex == FocusableElements.Hours.index,
+                            onSelected = {
+                                onPickerSelected(FocusableElements.Hours, FocusableElements.Minutes)
+                            },
+                            contentDescription = hoursContentDescription,
+                            option =
+                                pickerTextOption(
+                                    textStyle = styles.optionTextStyle,
+                                    selectedContentColor = colors.selectedPickerContentColor,
+                                    unselectedContentColor = colors.unselectedPickerContentColor,
+                                    indexToText = { "%02d".format(if (is12hour) it + 1 else it) },
+                                    optionHeight = styles.optionHeight,
+                                ),
+                            verticalSpacing = styles.optionSpacing,
                         )
 
-                    if (thirdPicker != null) {
-                        pickerGroupItems.add(
+                        Separator(
+                            textStyle = styles.optionTextStyle,
+                            color = colors.separatorColor,
+                            separatorPadding = styles.separatorPadding,
+                            text = ":",
+                        )
+
+                        // Minutes Picker
+                        PickerGroupItem(
+                            pickerState = minuteState,
+                            modifier = Modifier.width(styles.optionWidth).fillMaxHeight(),
+                            selected = selectedIndex == FocusableElements.Minutes.index,
+                            onSelected = {
+                                onPickerSelected(
+                                    FocusableElements.Minutes,
+                                    if (timePickerType == TimePickerType.HoursMinutes24H) {
+                                        FocusableElements.ConfirmButton
+                                    } else {
+                                        FocusableElements.SecondsOrPeriod
+                                    },
+                                )
+                            },
+                            contentDescription = minutesContentDescription,
+                            option =
+                                pickerTextOption(
+                                    textStyle = styles.optionTextStyle,
+                                    indexToText = { "%02d".format(it) },
+                                    selectedContentColor = colors.selectedPickerContentColor,
+                                    unselectedContentColor = colors.unselectedPickerContentColor,
+                                    optionHeight = styles.optionHeight,
+                                ),
+                            verticalSpacing = styles.optionSpacing,
+                        )
+
+                        // Seconds or Period picker
+                        if (thirdPicker != null) {
+                            Separator(
+                                text = if (!is12hour) ":" else "",
+                                textStyle = styles.optionTextStyle,
+                                color = colors.separatorColor,
+                                separatorPadding = styles.separatorPadding,
+                            )
+
                             PickerGroupItem(
                                 pickerState = thirdPicker.state,
                                 modifier = Modifier.width(styles.optionWidth).fillMaxHeight(),
+                                selected = selectedIndex == FocusableElements.SecondsOrPeriod.index,
                                 onSelected = {
                                     onPickerSelected(
-                                        FocusableElementsTimePicker.SECONDS_OR_PERIOD,
-                                        FocusableElementsTimePicker.CONFIRM_BUTTON,
+                                        FocusableElements.SecondsOrPeriod,
+                                        FocusableElements.ConfirmButton,
                                     )
                                 },
                                 contentDescription = thirdPicker.contentDescription,
@@ -279,46 +331,31 @@ fun TimePicker(
                                             colors.unselectedPickerContentColor,
                                         optionHeight = styles.optionHeight,
                                     ),
-                                spacing = styles.optionSpacing
-                            ),
-                        )
-                    }
-                    PickerGroup(
-                        *pickerGroupItems.toTypedArray(),
-                        modifier = Modifier.fillMaxWidth(),
-                        pickerGroupState = pickerGroupState,
-                        separator = {
-                            Separator(
-                                textStyle = styles.optionTextStyle,
-                                color = colors.separatorColor,
-                                separatorPadding = styles.separatorPadding,
-                                text = if (it == 0 || !is12hour) ":" else ""
+                                verticalSpacing = styles.optionSpacing,
                             )
-                        },
-                        autoCenter = false,
-                        touchExplorationStateProvider = touchExplorationStateProvider,
-                    )
+                        }
+                    }
                 }
                 Spacer(Modifier.height(styles.sectionVerticalPadding))
             }
             EdgeButton(
                 onClick = {
-                    val secondOrPeriodSelectedOption = thirdPicker?.state?.selectedOption ?: 0
+                    val secondOrPeriodSelectedOption = thirdPicker?.state?.selectedOptionIndex ?: 0
                     val confirmedTime =
                         if (is12hour) {
                             LocalTime.of(
-                                    hourState.selectedOption + 1,
-                                    minuteState.selectedOption,
+                                    hourState.selectedOptionIndex + 1,
+                                    minuteState.selectedOptionIndex,
                                     0,
                                 )
                                 .with(
                                     ChronoField.AMPM_OF_DAY,
-                                    secondOrPeriodSelectedOption.toLong()
+                                    secondOrPeriodSelectedOption.toLong(),
                                 )
                         } else {
                             LocalTime.of(
-                                hourState.selectedOption,
-                                minuteState.selectedOption,
+                                hourState.selectedOptionIndex,
+                                minuteState.selectedOptionIndex,
                                 secondOrPeriodSelectedOption,
                             )
                         }
@@ -326,21 +363,19 @@ fun TimePicker(
                 },
                 modifier =
                     Modifier.semantics {
-                            focused =
-                                pickerGroupState.selectedIndex ==
-                                    FocusableElementsTimePicker.CONFIRM_BUTTON.index
+                            focused = (selectedIndex == FocusableElements.ConfirmButton.index)
                         }
                         .focusRequester(focusRequesterConfirmButton)
                         .focusable(),
-                buttonHeight = ButtonDefaults.EdgeButtonHeightSmall,
+                buttonSize = EdgeButtonSize.Small,
                 colors =
                     buttonColors(
                         contentColor = colors.confirmButtonContentColor,
-                        containerColor = colors.confirmButtonContainerColor
+                        containerColor = colors.confirmButtonContainerColor,
                     ),
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Check,
+                    imageVector = Icons.Check,
                     contentDescription = getString(Strings.PickerConfirmButtonContentDescription),
                     modifier = Modifier.size(24.dp).wrapContentSize(align = Alignment.Center),
                 )
@@ -356,17 +391,17 @@ fun TimePicker(
 /** Specifies the types of columns to display in the TimePicker. */
 @Immutable
 @JvmInline
-value class TimePickerType internal constructor(internal val value: Int) {
-    companion object {
+public value class TimePickerType internal constructor(internal val value: Int) {
+    public companion object {
         /** Displays two columns for hours (24-hour format) and minutes. */
-        val HoursMinutes24H = TimePickerType(0)
+        public val HoursMinutes24H: TimePickerType = TimePickerType(0)
         /** Displays three columns for hours (24-hour format), minutes and seconds. */
-        val HoursMinutesSeconds24H = TimePickerType(1)
+        public val HoursMinutesSeconds24H: TimePickerType = TimePickerType(1)
         /** Displays three columns for hours (12-hour format), minutes and AM/PM label. */
-        val HoursMinutesAmPm12H = TimePickerType(2)
+        public val HoursMinutesAmPm12H: TimePickerType = TimePickerType(2)
     }
 
-    override fun toString() =
+    override fun toString(): String =
         when (this) {
             HoursMinutes24H -> "HoursMinutes24H"
             HoursMinutesSeconds24H -> "HoursMinutesSeconds24H"
@@ -376,10 +411,10 @@ value class TimePickerType internal constructor(internal val value: Int) {
 }
 
 /** Contains the default values used by [TimePicker] */
-object TimePickerDefaults {
+public object TimePickerDefaults {
 
     /** The default [TimePickerType] for [TimePicker] aligns with the current system time format. */
-    val timePickerType: TimePickerType
+    public val timePickerType: TimePickerType
         @Composable
         get() =
             if (is24HourFormat()) {
@@ -389,7 +424,9 @@ object TimePickerDefaults {
             }
 
     /** Creates a [TimePickerColors] for a [TimePicker]. */
-    @Composable fun timePickerColors() = MaterialTheme.colorScheme.defaultTimePickerColors
+    @Composable
+    public fun timePickerColors(): TimePickerColors =
+        MaterialTheme.colorScheme.defaultTimePickerColors
 
     /**
      * Creates a [TimePickerColors] for a [TimePicker].
@@ -402,14 +439,14 @@ object TimePickerDefaults {
      * @param confirmButtonContainerColor The container color of the confirm button.
      */
     @Composable
-    fun timePickerColors(
+    public fun timePickerColors(
         selectedPickerContentColor: Color = Color.Unspecified,
         unselectedPickerContentColor: Color = Color.Unspecified,
         separatorColor: Color = Color.Unspecified,
         pickerLabelColor: Color = Color.Unspecified,
         confirmButtonContentColor: Color = Color.Unspecified,
         confirmButtonContainerColor: Color = Color.Unspecified,
-    ) =
+    ): TimePickerColors =
         MaterialTheme.colorScheme.defaultTimePickerColors.copy(
             selectedPickerContentColor = selectedPickerContentColor,
             unselectedPickerContentColor = unselectedPickerContentColor,
@@ -424,11 +461,11 @@ object TimePickerDefaults {
             return defaultTimePickerColorsCached
                 ?: TimePickerColors(
                         selectedPickerContentColor =
-                            fromToken(TimePickerTokens.SelectedPickerContentColor),
+                            fromToken(TimePickerTokens.SelectedContentColor),
                         unselectedPickerContentColor =
-                            fromToken(TimePickerTokens.UnselectedPickerContentColor),
+                            fromToken(TimePickerTokens.UnselectedContentColor),
                         separatorColor = fromToken(TimePickerTokens.SeparatorColor),
-                        pickerLabelColor = fromToken(TimePickerTokens.PickerLabelColor),
+                        pickerLabelColor = fromToken(TimePickerTokens.LabelColor),
                         confirmButtonContentColor =
                             fromToken(TimePickerTokens.ConfirmButtonContentColor),
                         confirmButtonContainerColor =
@@ -449,23 +486,32 @@ object TimePickerDefaults {
  * @param confirmButtonContainerColor The container color of the confirm button.
  */
 @Immutable
-class TimePickerColors
-constructor(
-    val selectedPickerContentColor: Color,
-    val unselectedPickerContentColor: Color,
-    val separatorColor: Color,
-    val pickerLabelColor: Color,
-    val confirmButtonContentColor: Color,
-    val confirmButtonContainerColor: Color,
+public class TimePickerColors(
+    public val selectedPickerContentColor: Color,
+    public val unselectedPickerContentColor: Color,
+    public val separatorColor: Color,
+    public val pickerLabelColor: Color,
+    public val confirmButtonContentColor: Color,
+    public val confirmButtonContainerColor: Color,
 ) {
-    internal fun copy(
-        selectedPickerContentColor: Color,
-        unselectedPickerContentColor: Color,
-        separatorColor: Color,
-        pickerLabelColor: Color,
-        confirmButtonContentColor: Color,
-        confirmButtonContainerColor: Color,
-    ) =
+    /**
+     * Returns a copy of this TimePickerColors( optionally overriding some of the values.
+     *
+     * @param selectedPickerContentColor The content color of selected picker.
+     * @param unselectedPickerContentColor The content color of unselected pickers.
+     * @param separatorColor The color of separator between the pickers.
+     * @param pickerLabelColor The color of the picker label.
+     * @param confirmButtonContentColor The content color of the confirm button.
+     * @param confirmButtonContainerColor The container color of the confirm button.
+     */
+    public fun copy(
+        selectedPickerContentColor: Color = this.selectedPickerContentColor,
+        unselectedPickerContentColor: Color = this.unselectedPickerContentColor,
+        separatorColor: Color = this.separatorColor,
+        pickerLabelColor: Color = this.pickerLabelColor,
+        confirmButtonContentColor: Color = this.confirmButtonContentColor,
+        confirmButtonContainerColor: Color = this.confirmButtonContainerColor,
+    ): TimePickerColors =
         TimePickerColors(
             selectedPickerContentColor =
                 selectedPickerContentColor.takeOrElse { this.selectedPickerContentColor },
@@ -508,25 +554,25 @@ constructor(
 @Composable
 private fun getTimePickerStyles(
     timePickerType: TimePickerType,
-    optionalThirdPicker: PickerData?
+    optionalThirdPicker: PickerData?,
 ): TimePickerStyles {
-    val isLargeScreen = LocalConfiguration.current.screenWidthDp > 225
+    val isLargeScreen = isLargeScreen()
     val labelTextStyle =
         if (isLargeScreen) {
-                TimePickerTokens.PickerLabelLargeTypography
+                TimePickerTokens.LabelLargeTypography
             } else {
-                TimePickerTokens.PickerLabelTypography
+                TimePickerTokens.LabelTypography
             }
             .value
 
     val optionTextStyle =
         if (isLargeScreen || timePickerType == TimePickerType.HoursMinutes24H) {
-                TimePickerTokens.PickerContentLargeTypography
+                TimePickerTokens.ContentLargeTypography
             } else {
-                TimePickerTokens.PickerContentTypography
+                TimePickerTokens.ContentTypography
             }
             .value
-            .copy(textAlign = TextAlign.Center)
+            .copy(textAlign = TextAlign.Center, fontFeatureSettings = "tnum")
 
     val optionHeight =
         if (isLargeScreen || timePickerType == TimePickerType.HoursMinutes24H) {
@@ -549,10 +595,7 @@ private fun getTimePickerStyles(
     val indexToText = optionalThirdPicker?.indexToText ?: { "" }
 
     val (twoDigitsWidth, textLabelWidth) =
-        remember(
-            density.density,
-            LocalConfiguration.current.screenWidthDp,
-        ) {
+        remember(density.density, LocalConfiguration.current.screenWidthDp, optionTextStyle) {
             val mm =
                 measurer.measure(
                     "0123456789\n${indexToText(0)}\n${indexToText(1)}",
@@ -579,7 +622,7 @@ private fun getTimePickerStyles(
         optionHeight = optionHeight,
         optionSpacing = optionSpacing,
         separatorPadding = separatorPadding,
-        sectionVerticalPadding = if (isLargeScreen) 6.dp else 4.dp
+        sectionVerticalPadding = if (isLargeScreen) 6.dp else 4.dp,
     )
 }
 
@@ -587,9 +630,10 @@ private fun getTimePickerStyles(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun getOptionalThirdPicker(
+    context: Context,
     timePickerType: TimePickerType,
-    pickerGroupState: PickerGroupState,
-    time: LocalTime
+    selectedIndex: Int?,
+    time: LocalTime,
 ): PickerData? =
     when (timePickerType) {
         TimePickerType.HoursMinutesSeconds24H -> {
@@ -597,20 +641,23 @@ private fun getOptionalThirdPicker(
             val secondState =
                 rememberPickerState(
                     initialNumberOfOptions = 60,
-                    initiallySelectedOption = time.second,
+                    initiallySelectedIndex = time.second,
                 )
-            val secondsContentDescription =
+
+            val secondsContentDescription = {
                 createDescription(
-                    pickerGroupState,
-                    secondState.selectedOption,
+                    context,
+                    selectedIndex,
+                    secondState.selectedOptionIndex,
                     secondString,
                     Plurals.TimePickerSecondsContentDescription,
                 )
+            }
             PickerData(
                 state = secondState,
                 contentDescription = secondsContentDescription,
                 label = secondString,
-                indexToText = { "%02d".format(it) }
+                indexToText = { "%02d".format(it) },
             )
         }
         TimePickerType.HoursMinutesAmPm12H -> {
@@ -618,8 +665,8 @@ private fun getOptionalThirdPicker(
             val periodState =
                 rememberPickerState(
                     initialNumberOfOptions = 2,
-                    initiallySelectedOption = time[ChronoField.AMPM_OF_DAY],
-                    repeatItems = false,
+                    initiallySelectedIndex = time[ChronoField.AMPM_OF_DAY],
+                    shouldRepeatOptions = false,
                 )
             val primaryLocale = LocalConfiguration.current.locales[0]
             val (amString, pmString) =
@@ -629,28 +676,20 @@ private fun getOptionalThirdPicker(
                             LocalTime.of(12, 0).format(formatter)
                     }
                 }
-            val periodContentDescription by
-                remember(
-                    pickerGroupState.selectedIndex,
-                    periodState.selectedOption,
-                ) {
-                    derivedStateOf {
-                        if (
-                            pickerGroupState.selectedIndex == FocusableElementsTimePicker.NONE.index
-                        ) {
-                            periodString
-                        } else if (periodState.selectedOption == 0) {
-                            amString
-                        } else {
-                            pmString
-                        }
-                    }
+            val periodContentDescription = {
+                if (selectedIndex == null) {
+                    periodString
+                } else if (periodState.selectedOptionIndex == 0) {
+                    amString
+                } else {
+                    pmString
                 }
+            }
             PickerData(
                 state = periodState,
                 contentDescription = periodContentDescription,
                 label = "",
-                indexToText = { if (it == 0) amString else pmString }
+                indexToText = { if (it == 0) amString else pmString },
             )
         }
         else -> null
@@ -658,7 +697,7 @@ private fun getOptionalThirdPicker(
 
 private class PickerData(
     val state: PickerState,
-    val contentDescription: String,
+    val contentDescription: () -> String,
     val label: String,
     val indexToText: (Int) -> String,
 )
@@ -691,32 +730,37 @@ private fun Separator(
     }
 }
 
-@Composable
 private fun createDescription(
-    pickerGroupState: PickerGroupState,
+    context: Context,
+    selectedIndex: Int?,
     selectedValue: Int,
     label: String,
     plurals: Plurals,
 ) =
-    when (pickerGroupState.selectedIndex) {
-        FocusableElementsTimePicker.NONE.index -> label
-        else -> getPlurals(plurals, selectedValue, selectedValue)
+    if (selectedIndex == null) {
+        label
+    } else {
+        context.resources.getQuantityString(plurals.value, selectedValue, selectedValue)
     }
 
-private enum class FocusableElementsTimePicker(val index: Int) {
-    HOURS(0),
-    MINUTES(1),
-    SECONDS_OR_PERIOD(2),
-    CONFIRM_BUTTON(3),
-    NONE(-1),
-    ;
-
+@Immutable
+@JvmInline
+private value class FocusableElements(val index: Int?) {
     companion object {
-        private val map: IntObjectMap<FocusableElementsTimePicker> =
-            MutableIntObjectMap<FocusableElementsTimePicker>().apply {
-                values().forEach { put(it.index, it) }
-            }
-
-        operator fun get(value: Int) = map[value]
+        val Hours = FocusableElements(0)
+        val Minutes = FocusableElements(1)
+        val SecondsOrPeriod = FocusableElements(2)
+        val ConfirmButton = FocusableElements(3)
+        val None = FocusableElements(null)
     }
+
+    override fun toString() =
+        when (this) {
+            Hours -> "HOURS"
+            Minutes -> "MINUTES"
+            SecondsOrPeriod -> "SECONDS_OR_PERIOD"
+            ConfirmButton -> "CONFIRM_BUTTON"
+            None -> "NONE"
+            else -> "Unknown"
+        }
 }

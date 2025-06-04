@@ -17,11 +17,8 @@
 package androidx.wear.compose.material3.samples
 
 import androidx.annotation.Sampled
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
@@ -32,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.Text
@@ -56,19 +52,14 @@ fun TimePickerSample() {
                 timePickerTime = it
                 showTimePicker = false
             },
-            initialTime = timePickerTime // Initialize with last picked time on reopen
+            initialTime = timePickerTime, // Initialize with last picked time on reopen
         )
     } else {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Selected Time")
-            Spacer(Modifier.height(12.dp))
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Button(
                 onClick = { showTimePicker = true },
-                label = { Text(timePickerTime.format(formatter)) },
+                label = { Text("Selected Time") },
+                secondaryLabel = { Text(timePickerTime.format(formatter)) },
                 icon = { Icon(imageVector = Icons.Filled.Edit, contentDescription = "Edit") },
             )
         }
@@ -88,19 +79,14 @@ fun TimePickerWithSecondsSample() {
                 showTimePicker = false
             },
             timePickerType = TimePickerType.HoursMinutesSeconds24H,
-            initialTime = timePickerTime // Initialize with last picked time on reopen
+            initialTime = timePickerTime, // Initialize with last picked time on reopen
         )
     } else {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Selected Time")
-            Spacer(Modifier.height(12.dp))
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Button(
                 onClick = { showTimePicker = true },
-                label = { Text(timePickerTime.format(formatter)) },
+                label = { Text("Selected Time") },
+                secondaryLabel = { Text(timePickerTime.format(formatter)) },
                 icon = { Icon(imageVector = Icons.Filled.Edit, contentDescription = "Edit") },
             )
         }
@@ -120,19 +106,14 @@ fun TimePickerWith12HourClockSample() {
                 showTimePicker = false
             },
             timePickerType = TimePickerType.HoursMinutesAmPm12H,
-            initialTime = timePickerTime // Initialize with last picked time on reopen
+            initialTime = timePickerTime, // Initialize with last picked time on reopen
         )
     } else {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Selected Time")
-            Spacer(Modifier.height(12.dp))
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Button(
                 onClick = { showTimePicker = true },
-                label = { Text(timePickerTime.format(formatter)) },
+                label = { Text("Selected Time") },
+                secondaryLabel = { Text(timePickerTime.format(formatter)) },
                 icon = { Icon(imageVector = Icons.Filled.Edit, contentDescription = "Edit") },
             )
         }

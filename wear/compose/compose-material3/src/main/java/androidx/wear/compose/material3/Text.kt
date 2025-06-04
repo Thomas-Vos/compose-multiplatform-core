@@ -88,7 +88,7 @@ import androidx.compose.ui.unit.TextUnit
  * @param style Style configuration for the text such as color, font, line height etc.
  */
 @Composable
-fun Text(
+public fun Text(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
@@ -105,7 +105,7 @@ fun Text(
     maxLines: Int = LocalTextConfiguration.current.maxLines,
     minLines: Int = 1,
     onTextLayout: (TextLayoutResult) -> Unit = {},
-    style: TextStyle = LocalTextStyle.current
+    style: TextStyle = LocalTextStyle.current,
 ) {
     Text(
         AnnotatedString(text),
@@ -125,7 +125,7 @@ fun Text(
         minLines,
         emptyMap(),
         onTextLayout,
-        style
+        style,
     )
 }
 
@@ -182,7 +182,7 @@ fun Text(
  * @param style Style configuration for the text such as color, font, line height etc.
  */
 @Composable
-fun Text(
+public fun Text(
     text: AnnotatedString,
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
@@ -200,7 +200,7 @@ fun Text(
     minLines: Int = 1,
     inlineContent: Map<String, InlineTextContent> = mapOf(),
     onTextLayout: (TextLayoutResult) -> Unit = {},
-    style: TextStyle = LocalTextStyle.current
+    style: TextStyle = LocalTextStyle.current,
 ) {
     val textColor = color.takeOrElse { style.color.takeOrElse { LocalContentColor.current } }
 
@@ -222,7 +222,7 @@ fun Text(
         minLines = minLines,
         inlineContent = inlineContent,
         onTextLayout = onTextLayout,
-        style = style
+        style = style,
     )
 }
 
@@ -233,7 +233,7 @@ fun Text(
  *
  * @see ProvideTextStyle
  */
-val LocalTextStyle: ProvidableCompositionLocal<TextStyle> =
+public val LocalTextStyle: ProvidableCompositionLocal<TextStyle> =
     compositionLocalOf(structuralEqualityPolicy()) { DefaultTextStyle }
 
 /**
@@ -244,7 +244,7 @@ val LocalTextStyle: ProvidableCompositionLocal<TextStyle> =
  * @see LocalTextStyle
  */
 @Composable
-fun ProvideTextStyle(value: TextStyle, content: @Composable () -> Unit) {
+public fun ProvideTextStyle(value: TextStyle, content: @Composable () -> Unit) {
     val mergedStyle = LocalTextStyle.current.merge(value)
     CompositionLocalProvider(LocalTextStyle provides mergedStyle, content = content)
 }
@@ -256,12 +256,12 @@ fun ProvideTextStyle(value: TextStyle, content: @Composable () -> Unit) {
  * [RadioButton] use [LocalTextConfiguration] to set values with which to style child text
  * components.
  */
-val LocalTextConfiguration: ProvidableCompositionLocal<TextConfiguration> =
+public val LocalTextConfiguration: ProvidableCompositionLocal<TextConfiguration> =
     compositionLocalOf(structuralEqualityPolicy()) {
         TextConfiguration(
             TextConfigurationDefaults.TextAlign,
             TextConfigurationDefaults.Overflow,
-            TextConfigurationDefaults.MaxLines
+            TextConfigurationDefaults.MaxLines,
         )
     }
 
@@ -272,10 +272,10 @@ val LocalTextConfiguration: ProvidableCompositionLocal<TextConfiguration> =
  * @param overflow How visual overflow should be handled.
  * @param maxLines The maximum number of lines for the text to span, wrapping if necessary.
  */
-class TextConfiguration(
-    val textAlign: TextAlign?,
-    val overflow: TextOverflow,
-    val maxLines: Int,
+public class TextConfiguration(
+    public val textAlign: TextAlign?,
+    public val overflow: TextOverflow,
+    public val maxLines: Int,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -297,13 +297,13 @@ class TextConfiguration(
 }
 
 /** Default values for [TextConfiguration] */
-object TextConfigurationDefaults {
+public object TextConfigurationDefaults {
     /** Default text alignment for [Text] */
-    val TextAlign: TextAlign? = null
+    public val TextAlign: TextAlign? = null
 
     /** Default visual text overflow for [Text] */
-    val Overflow: TextOverflow = TextOverflow.Clip
+    public val Overflow: TextOverflow = TextOverflow.Clip
 
     /** Default max lines for [Text] */
-    const val MaxLines: Int = Int.MAX_VALUE
+    public val MaxLines: Int = Int.MAX_VALUE
 }

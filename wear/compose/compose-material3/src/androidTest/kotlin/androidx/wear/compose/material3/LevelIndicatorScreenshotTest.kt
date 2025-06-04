@@ -60,6 +60,10 @@ class LevelIndicatorScreenshotTest {
         verifyScreenshot(value = 0f, shape = shape, testName = testName)
 
     @Test
+    fun level_indicator_5_percent(@TestParameter shape: ScreenShape) =
+        verifyScreenshot(value = 5f, shape = shape, testName = testName)
+
+    @Test
     fun level_indicator_25_percent(@TestParameter shape: ScreenShape) =
         verifyScreenshot(value = 25f, shape = shape, testName = testName)
 
@@ -89,7 +93,7 @@ class LevelIndicatorScreenshotTest {
             value = 25f,
             strokeWidth = LevelIndicatorDefaults.StrokeWidth * 2,
             shape = shape,
-            testName = testName
+            testName = testName,
         )
 
     @Test
@@ -98,7 +102,7 @@ class LevelIndicatorScreenshotTest {
             value = 25f,
             sweepAngle = LevelIndicatorDefaults.SweepAngle / 2f,
             shape = shape,
-            testName = testName
+            testName = testName,
         )
 
     private fun verifyScreenshot(
@@ -129,18 +133,17 @@ class LevelIndicatorScreenshotTest {
                 }
             CompositionLocalProvider(
                 LocalLayoutDirection provides actualLayoutDirection,
-                LocalConfiguration provides updatedConfig
+                LocalConfiguration provides updatedConfig,
             ) {
                 Box(
                     modifier =
-                        Modifier.testTag(TEST_TAG)
-                            .size(screenSizeDp.dp)
+                        Modifier.size(screenSizeDp.dp)
                             .background(MaterialTheme.colorScheme.background)
                 ) {
-                    LevelIndicator(
+                    StepperLevelIndicator(
                         value = { value },
                         valueRange = valueRange,
-                        modifier = Modifier.align(Alignment.CenterStart),
+                        modifier = Modifier.align(Alignment.CenterStart).testTag(TEST_TAG),
                         enabled = enabled,
                         strokeWidth = strokeWidth,
                         sweepAngle = sweepAngle,
