@@ -47,7 +47,7 @@ class SegmentedCircularProgressIndicatorTest {
             SegmentedCircularProgressIndicator(
                 segmentCount = 5,
                 progress = { 0.5f },
-                modifier = Modifier.testTag(TEST_TAG)
+                modifier = Modifier.testTag(TEST_TAG),
             )
         }
 
@@ -87,7 +87,7 @@ class SegmentedCircularProgressIndicatorTest {
                 colors =
                     ProgressIndicatorDefaults.colors(
                         indicatorColor = Color.Yellow,
-                        trackColor = Color.Red
+                        trackColor = Color.Red,
                     ),
             )
         }
@@ -111,7 +111,7 @@ class SegmentedCircularProgressIndicatorTest {
                 colors =
                     ProgressIndicatorDefaults.colors(
                         indicatorColor = Color.Yellow,
-                        trackColor = Color.Red
+                        trackColor = Color.Red,
                     ),
             )
         }
@@ -136,7 +136,7 @@ class SegmentedCircularProgressIndicatorTest {
                 colors =
                     ProgressIndicatorDefaults.colors(
                         indicatorColor = Color.Yellow,
-                        trackColor = Color.Red
+                        trackColor = Color.Red,
                     ),
             )
         }
@@ -165,7 +165,7 @@ class SegmentedCircularProgressIndicatorTest {
                 colors =
                     ProgressIndicatorDefaults.colors(
                         indicatorColor = Color.Yellow,
-                        trackColor = Color.Red
+                        trackColor = Color.Red,
                     ),
             )
         }
@@ -192,7 +192,7 @@ class SegmentedCircularProgressIndicatorTest {
                 colors =
                     ProgressIndicatorDefaults.colors(
                         indicatorColor = Color.Yellow,
-                        trackColor = Color.Red
+                        trackColor = Color.Red,
                     ),
             )
         }
@@ -214,12 +214,12 @@ class SegmentedCircularProgressIndicatorTest {
         setContentWithTheme {
             SegmentedCircularProgressIndicator(
                 segmentCount = 6,
-                completed = { it % 2 != 0 },
+                segmentValue = { it % 2 != 0 },
                 modifier = Modifier.testTag(TEST_TAG),
                 colors =
                     ProgressIndicatorDefaults.colors(
                         indicatorColor = Color.Yellow,
-                        trackColor = Color.Red
+                        trackColor = Color.Red,
                     ),
                 strokeWidth = 36.dp,
             )
@@ -243,12 +243,12 @@ class SegmentedCircularProgressIndicatorTest {
         setContentWithTheme {
             SegmentedCircularProgressIndicator(
                 segmentCount = 6,
-                completed = { true },
+                segmentValue = { true },
                 modifier = Modifier.testTag(TEST_TAG),
                 colors =
                     ProgressIndicatorDefaults.colors(
                         indicatorColor = Color.Yellow,
-                        trackColor = Color.Red
+                        trackColor = Color.Red,
                     ),
             )
         }
@@ -258,7 +258,7 @@ class SegmentedCircularProgressIndicatorTest {
         rule
             .onNodeWithTag(TEST_TAG)
             .captureToImage()
-            .assertColorInPercentageRange(Color.Yellow, 14f..16f)
+            .assertColorInPercentageRange(Color.Yellow, 15f..18f)
     }
 
     @SdkSuppress(minSdkVersion = Build.VERSION_CODES.O)
@@ -267,12 +267,12 @@ class SegmentedCircularProgressIndicatorTest {
         setContentWithTheme {
             SegmentedCircularProgressIndicator(
                 segmentCount = 6,
-                completed = { false },
+                segmentValue = { false },
                 modifier = Modifier.testTag(TEST_TAG),
                 colors =
                     ProgressIndicatorDefaults.colors(
                         indicatorColor = Color.Yellow,
-                        trackColor = Color.Red
+                        trackColor = Color.Red,
                     ),
             )
         }
@@ -328,9 +328,9 @@ class SegmentedCircularProgressIndicatorTest {
                     ProgressIndicatorDefaults.colors(
                         indicatorColor = customIndicatorColor,
                         trackColor = customTrackColor,
-                        overflowTrackColor = customOverflowTrackColor
+                        overflowTrackColor = customOverflowTrackColor,
                     ),
-                allowProgressOverflow = true
+                allowProgressOverflow = true,
             )
         }
         rule.waitForIdle()
@@ -357,9 +357,9 @@ class SegmentedCircularProgressIndicatorTest {
                     ProgressIndicatorDefaults.colors(
                         indicatorColor = customIndicatorColor,
                         trackColor = customTrackColor,
-                        overflowTrackColor = customOverflowTrackColor
+                        overflowTrackColor = customOverflowTrackColor,
                     ),
-                allowProgressOverflow = false
+                allowProgressOverflow = false,
             )
         }
         rule.waitForIdle()
@@ -406,6 +406,10 @@ class SegmentedCircularProgressIndicatorTest {
 
     private fun setContentWithTheme(composable: @Composable BoxScope.() -> Unit) {
         // Use constant size modifier to limit relative color percentage ranges.
-        rule.setContentWithTheme(modifier = Modifier.size(204.dp), composable = composable)
+        rule.setContentWithTheme(modifier = Modifier.size(COMPONENT_SIZE)) {
+            ScreenConfiguration(SCREEN_SIZE_LARGE) { composable() }
+        }
     }
 }
+
+private val COMPONENT_SIZE = 204.dp

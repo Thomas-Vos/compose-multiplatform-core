@@ -22,11 +22,13 @@ import android.view.accessibility.AccessibilityManager.AccessibilityStateChangeL
 import android.view.accessibility.AccessibilityManager.TouchExplorationStateChangeListener
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -37,7 +39,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
  * discouraged to make logic conditional based on state of accessibility services. Please consult
  * with accessibility experts before making such change.
  */
-fun interface TouchExplorationStateProvider {
+internal fun interface TouchExplorationStateProvider {
 
     /**
      * Returns the touch exploration service state wrapped in a [State] to allow composables to
@@ -74,7 +76,7 @@ internal class DefaultTouchExplorationStateProvider : TouchExplorationStateProvi
                 // Unregister the listener in case the PAUSE lifecycle event never came through
                 // Unregistering multiple times is safe
                 listener.unregister()
-            }
+            },
         )
 
         return listener
@@ -83,7 +85,7 @@ internal class DefaultTouchExplorationStateProvider : TouchExplorationStateProvi
     @Composable
     private fun Lifecycle.ObserveState(
         handleEvent: (Lifecycle.Event) -> Unit = {},
-        onDispose: () -> Unit = {}
+        onDispose: () -> Unit = {},
     ) {
         DisposableEffect(this) {
             val observer = LifecycleEventObserver { _, event -> handleEvent(event) }
@@ -95,9 +97,8 @@ internal class DefaultTouchExplorationStateProvider : TouchExplorationStateProvi
         }
     }
 
-    private class Listener(
-        private val accessibilityManager: AccessibilityManager,
-    ) : AccessibilityStateChangeListener, TouchExplorationStateChangeListener, State<Boolean> {
+    private class Listener(private val accessibilityManager: AccessibilityManager) :
+        AccessibilityStateChangeListener, TouchExplorationStateChangeListener, State<Boolean> {
 
         private var accessibilityEnabled by mutableStateOf(accessibilityManager.isEnabled)
         private var touchExplorationEnabled by
@@ -128,3 +129,10 @@ internal class DefaultTouchExplorationStateProvider : TouchExplorationStateProvi
         }
     }
 }
+
+/** CompositionLocal to provide a means to override TouchExplorationStateProvider during testing */
+internal val LocalTouchExplorationStateProvider:
+    ProvidableCompositionLocal<TouchExplorationStateProvider> =
+    staticCompositionLocalOf {
+        DefaultTouchExplorationStateProvider()
+    }

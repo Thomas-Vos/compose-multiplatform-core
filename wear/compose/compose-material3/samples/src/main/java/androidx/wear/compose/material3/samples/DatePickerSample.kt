@@ -52,13 +52,10 @@ fun DatePickerSample() {
             onDatePicked = {
                 datePickerDate = it
                 showDatePicker = false
-            }
+            },
         )
     } else {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Button(
                 onClick = { showDatePicker = true },
                 label = { Text("Selected Date") },
@@ -82,13 +79,10 @@ fun DatePickerYearMonthDaySample() {
                 datePickerDate = it
                 showDatePicker = false
             },
-            datePickerType = DatePickerType.YearMonthDay
+            datePickerType = DatePickerType.YearMonthDay,
         )
     } else {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Button(
                 onClick = { showDatePicker = true },
                 label = { Text("Selected Date") },
@@ -101,9 +95,10 @@ fun DatePickerYearMonthDaySample() {
 
 @Sampled
 @Composable
-fun DatePickerFromDateToDateSample() {
+fun DatePickerFutureOnlySample() {
+    val currentDate = LocalDate.now()
     var showDatePicker by remember { mutableStateOf(true) }
-    var datePickerDate by remember { mutableStateOf(LocalDate.of(2024, 9, 2)) }
+    var datePickerDate by remember { mutableStateOf(LocalDate.now()) }
     val formatter =
         DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
             .withLocale(LocalConfiguration.current.locales[0])
@@ -114,15 +109,11 @@ fun DatePickerFromDateToDateSample() {
                 datePickerDate = it
                 showDatePicker = false
             },
-            minDate = LocalDate.of(2023, 10, 15),
-            maxDate = LocalDate.of(2025, 2, 4),
-            datePickerType = DatePickerType.YearMonthDay
+            datePickerType = DatePickerType.YearMonthDay,
+            minValidDate = currentDate,
         )
     } else {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Button(
                 onClick = { showDatePicker = true },
                 label = { Text("Selected Date") },

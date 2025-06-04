@@ -18,7 +18,6 @@ package androidx.wear.compose.material3.test
 
 import android.os.Build
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -29,7 +28,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.testutils.assertAgainstGolden
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
@@ -47,6 +45,7 @@ import androidx.wear.compose.material3.FilledTonalIconButton
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.IconButton
 import androidx.wear.compose.material3.IconButtonDefaults
+import androidx.wear.compose.material3.IconButtonShapes
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.OutlinedIconButton
 import androidx.wear.compose.material3.SCREENSHOT_GOLDEN_PATH
@@ -158,45 +157,42 @@ class IconButtonScreenshotTest {
 
     @Test
     fun button_with_corner_animation() = verifyScreenshot {
-        val interactionSource = remember { MutableInteractionSource() }
-        sampleOutlinedIconButton(
-            shape = IconButtonDefaults.animatedShape(interactionSource),
-            interactionSource = interactionSource
-        )
+        sampleOutlinedIconButton(shapes = IconButtonDefaults.animatedShapes())
     }
 
     @Test
     fun button_with_corner_animation_50pct() {
-        verifyScreenshot { sampleOutlinedIconButton(shape = animatedShapesAtPct(0.5f)) }
+        verifyScreenshot {
+            sampleOutlinedIconButton(shapes = IconButtonDefaults.shapes(animatedShapesAtPct(0.5f)))
+        }
     }
 
     @Test
     fun button_with_corner_animation_100pct() {
-        verifyScreenshot { sampleOutlinedIconButton(shape = animatedShapesAtPct(1.0f)) }
+        verifyScreenshot {
+            sampleOutlinedIconButton(shapes = IconButtonDefaults.shapes(animatedShapesAtPct(1.0f)))
+        }
     }
 
     @Test
     fun button_with_morph_animation() = verifyScreenshot {
-        val interactionSource = remember { MutableInteractionSource() }
         sampleOutlinedIconButton(
-            shape =
-                IconButtonDefaults.animatedShape(
-                    interactionSource,
+            shapes =
+                IconButtonDefaults.animatedShapes(
                     shape = CutCornerShape(15.dp),
-                    pressedShape = RoundedCornerShape(15.dp)
-                ),
-            interactionSource = interactionSource,
+                    pressedShape = RoundedCornerShape(15.dp),
+                )
         )
     }
 
     @Test
     fun button_with_morph_animation_50pct() = verifyScreenshot {
-        sampleOutlinedIconButton(shape = morphShapesAtPct(0.5f))
+        sampleOutlinedIconButton(shapes = IconButtonDefaults.shapes(morphShapesAtPct(0.5f)))
     }
 
     @Test
     fun button_with_morph_animation_100pct() = verifyScreenshot {
-        sampleOutlinedIconButton(shape = morphShapesAtPct(1.0f))
+        sampleOutlinedIconButton(shapes = IconButtonDefaults.shapes(morphShapesAtPct(1.0f)))
     }
 
     @Composable
@@ -205,7 +201,7 @@ class IconButtonScreenshotTest {
             rememberAnimatedRoundedCornerShape(
                 IconButtonDefaults.shape,
                 MaterialTheme.shapes.small as RoundedCornerShape,
-                mutableStateOf(progress)
+                mutableStateOf(progress),
             )
 
         return progressShape
@@ -217,7 +213,7 @@ class IconButtonScreenshotTest {
             rememberAnimatedCornerBasedShape(
                 CutCornerShape(15.dp),
                 RoundedCornerShape(15.dp),
-                mutableStateOf(progress)
+                mutableStateOf(progress),
             )
 
         return progressShape
@@ -234,7 +230,7 @@ class IconButtonScreenshotTest {
                         if (isCompact)
                             Modifier.touchTargetAwareSize(IconButtonDefaults.ExtraSmallButtonSize)
                         else Modifier
-                    )
+                    ),
         ) {
             Icon(
                 imageVector = Icons.Outlined.Home,
@@ -244,7 +240,7 @@ class IconButtonScreenshotTest {
                         Modifier.size(
                             IconButtonDefaults.iconSizeFor(IconButtonDefaults.SmallIconSize)
                         )
-                    else Modifier
+                    else Modifier,
             )
         }
     }
@@ -260,7 +256,7 @@ class IconButtonScreenshotTest {
                         if (isCompact)
                             Modifier.touchTargetAwareSize(IconButtonDefaults.ExtraSmallButtonSize)
                         else Modifier
-                    )
+                    ),
         ) {
             Icon(
                 imageVector = Icons.Outlined.Home,
@@ -270,7 +266,7 @@ class IconButtonScreenshotTest {
                         Modifier.size(
                             IconButtonDefaults.iconSizeFor(IconButtonDefaults.SmallIconSize)
                         )
-                    else Modifier
+                    else Modifier,
             )
         }
     }
@@ -279,15 +275,13 @@ class IconButtonScreenshotTest {
     private fun sampleOutlinedIconButton(
         enabled: Boolean = true,
         isCompact: Boolean = false,
-        shape: Shape = IconButtonDefaults.shape,
+        shapes: IconButtonShapes = IconButtonDefaults.shapes(),
         modifier: Modifier = Modifier,
-        interactionSource: MutableInteractionSource? = null
     ) {
         OutlinedIconButton(
             onClick = {},
             enabled = enabled,
-            shape = shape,
-            interactionSource = interactionSource,
+            shapes = shapes,
             modifier =
                 modifier
                     .testTag(TEST_TAG)
@@ -295,7 +289,7 @@ class IconButtonScreenshotTest {
                         if (isCompact)
                             Modifier.touchTargetAwareSize(IconButtonDefaults.ExtraSmallButtonSize)
                         else Modifier
-                    )
+                    ),
         ) {
             Icon(
                 imageVector = Icons.Outlined.Home,
@@ -305,7 +299,7 @@ class IconButtonScreenshotTest {
                         Modifier.size(
                             IconButtonDefaults.iconSizeFor(IconButtonDefaults.SmallIconSize)
                         )
-                    else Modifier
+                    else Modifier,
             )
         }
     }
@@ -314,15 +308,13 @@ class IconButtonScreenshotTest {
     private fun sampleIconButton(
         enabled: Boolean = true,
         isCompact: Boolean = false,
-        shape: Shape = IconButtonDefaults.shape,
+        shapes: IconButtonShapes = IconButtonDefaults.shapes(),
         modifier: Modifier = Modifier,
-        interactionSource: MutableInteractionSource? = null
     ) {
         IconButton(
             onClick = {},
             enabled = enabled,
-            shape = shape,
-            interactionSource = interactionSource,
+            shapes = shapes,
             modifier =
                 modifier
                     .testTag(TEST_TAG)
@@ -330,7 +322,7 @@ class IconButtonScreenshotTest {
                         if (isCompact)
                             Modifier.touchTargetAwareSize(IconButtonDefaults.ExtraSmallButtonSize)
                         else Modifier
-                    )
+                    ),
         ) {
             Icon(
                 imageVector = Icons.Outlined.Home,
@@ -340,14 +332,14 @@ class IconButtonScreenshotTest {
                         Modifier.size(
                             IconButtonDefaults.iconSizeFor(IconButtonDefaults.SmallIconSize)
                         )
-                    else Modifier
+                    else Modifier,
             )
         }
     }
 
     private fun verifyScreenshot(
         methodName: String = testName.methodName,
-        content: @Composable () -> Unit
+        content: @Composable () -> Unit,
     ) {
         rule.setContentWithTheme {
             Box(

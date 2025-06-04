@@ -49,12 +49,29 @@ class ListHeaderScreenshotTest {
         }
 
     @Test
+    fun listheader_multiline() =
+        rule.verifyScreenshot(methodName = testName.methodName, screenshotRule = screenshotRule) {
+            ListHeader(modifier = Modifier.testTag(TEST_TAG)) {
+                Text(
+                    "Header should be center-aligned over multiple lines and so this heading is quite long"
+                )
+            }
+        }
+
+    @Test
     fun listsubheader_textonly() =
-        rule.verifyScreenshot(
-            methodName = testName.methodName,
-            screenshotRule = screenshotRule,
-        ) {
-            ListSubheader(modifier = Modifier.testTag(TEST_TAG)) { Text("Subheader") }
+        rule.verifyScreenshot(methodName = testName.methodName, screenshotRule = screenshotRule) {
+            ListSubHeader(modifier = Modifier.testTag(TEST_TAG)) { Text("Subheader") }
+        }
+
+    @Test
+    fun listsubheader_textonly_multiline() =
+        rule.verifyScreenshot(methodName = testName.methodName, screenshotRule = screenshotRule) {
+            ListSubHeader(modifier = Modifier.testTag(TEST_TAG)) {
+                Text(
+                    "Subheader should be start-aligned over multiple lines and so this heading is quite long"
+                )
+            }
         }
 
     @Test
@@ -64,7 +81,7 @@ class ListHeaderScreenshotTest {
             screenshotRule = screenshotRule,
             layoutDirection = LayoutDirection.Rtl,
         ) {
-            ListSubheader(modifier = Modifier.testTag(TEST_TAG)) { Text("Subheader") }
+            ListSubHeader(modifier = Modifier.testTag(TEST_TAG)) { Text("Subheader") }
         }
 
     @Test
@@ -74,10 +91,10 @@ class ListHeaderScreenshotTest {
             screenshotRule = screenshotRule,
             layoutDirection = LayoutDirection.Ltr,
         ) {
-            ListSubheader(
+            ListSubHeader(
                 modifier = Modifier.testTag(TEST_TAG),
                 label = { Text(text = "Subheader") },
-                icon = { Icon(imageVector = Icons.Outlined.Home, "home") }
+                icon = { Icon(imageVector = Icons.Outlined.Home, "home") },
             )
         }
 
@@ -86,12 +103,12 @@ class ListHeaderScreenshotTest {
         rule.verifyScreenshot(
             methodName = testName.methodName,
             screenshotRule = screenshotRule,
-            layoutDirection = LayoutDirection.Rtl
+            layoutDirection = LayoutDirection.Rtl,
         ) {
-            ListSubheader(
+            ListSubHeader(
                 modifier = Modifier.testTag(TEST_TAG),
                 label = { Text(text = "Subheader") },
-                icon = { Icon(imageVector = Icons.Outlined.Home, "home") }
+                icon = { Icon(imageVector = Icons.Outlined.Home, "home") },
             )
         }
 }

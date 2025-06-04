@@ -38,12 +38,11 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import androidx.test.filters.SdkSuppress
 import androidx.test.screenshot.AndroidXScreenshotTestRule
-import androidx.wear.compose.material3.ExperimentalWearMaterial3Api
 import androidx.wear.compose.material3.Icon
-import androidx.wear.compose.material3.InlineSlider
-import androidx.wear.compose.material3.InlineSliderDefaults
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.SCREENSHOT_GOLDEN_PATH
+import androidx.wear.compose.material3.Slider
+import androidx.wear.compose.material3.SliderDefaults
 import androidx.wear.compose.material3.TEST_TAG
 import androidx.wear.compose.material3.setContentWithTheme
 import org.junit.Rule
@@ -54,7 +53,6 @@ import org.junit.runner.RunWith
 @MediumTest
 @RunWith(AndroidJUnit4::class)
 @SdkSuppress(minSdkVersion = Build.VERSION_CODES.O)
-@OptIn(ExperimentalWearMaterial3Api::class)
 class SliderScreenshotTest {
 
     @get:Rule val rule = createComposeRule()
@@ -64,151 +62,137 @@ class SliderScreenshotTest {
     @get:Rule val testName = TestName()
 
     @Test
-    fun inlineslider_not_segmented() {
+    fun slider_not_segmented() {
         verifyScreenshot {
-            InlineSlider(
+            Slider(
                 modifier = Modifier.testTag(TEST_TAG),
                 value = 2f,
                 segmented = false,
-                increaseIcon = { Icon(InlineSliderDefaults.Increase, "Increase") },
-                decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Decrease") },
                 onValueChange = {},
                 valueRange = 1f..4f,
-                steps = 2
+                steps = 2,
             )
         }
     }
 
     @Test
-    fun inlineslider_not_segmented_disabled() {
+    fun slider_not_segmented_disabled() {
         verifyScreenshot {
-            InlineSlider(
+            Slider(
                 modifier = Modifier.testTag(TEST_TAG),
                 value = 2f,
                 segmented = false,
                 enabled = false,
-                increaseIcon = { Icon(InlineSliderDefaults.Increase, "Increase") },
-                decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Decrease") },
                 onValueChange = {},
                 valueRange = 1f..4f,
-                steps = 2
+                steps = 2,
             )
         }
     }
 
     @Test
-    fun inlineslider_segmented() {
+    fun slider_segmented() {
         verifyScreenshot {
-            InlineSlider(
+            Slider(
                 modifier = Modifier.testTag(TEST_TAG),
                 value = 2f,
                 segmented = true,
-                increaseIcon = { Icon(InlineSliderDefaults.Increase, "Increase") },
-                decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Decrease") },
                 onValueChange = {},
                 valueRange = 1f..4f,
-                steps = 2
+                steps = 2,
             )
         }
     }
 
     @Test
-    fun inlineslider_segmented_disabled() {
+    fun slider_segmented_disabled() {
         verifyScreenshot {
-            InlineSlider(
+            Slider(
                 modifier = Modifier.testTag(TEST_TAG),
                 value = 2f,
                 segmented = true,
                 enabled = false,
-                increaseIcon = { Icon(InlineSliderDefaults.Increase, "Increase") },
-                decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Decrease") },
                 onValueChange = {},
                 valueRange = 1f..4f,
-                steps = 2
+                steps = 2,
             )
         }
     }
 
     @Test
-    public fun inlineslider_rtl() {
+    fun slider_rtl() {
         verifyScreenshot {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                InlineSlider(
+                Slider(
                     modifier = Modifier.testTag(TEST_TAG),
                     value = 2f,
-                    increaseIcon = { Icon(InlineSliderDefaults.Increase, "Increase") },
-                    decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Decrease") },
                     onValueChange = {},
                     valueRange = 1f..4f,
-                    steps = 2
+                    steps = 2,
                 )
             }
         }
     }
 
     @Test
-    public fun inlineslider_with_increase_button_disabled() {
+    fun slider_with_increase_button_disabled() {
         verifyScreenshot {
-            InlineSlider(
+            Slider(
                 modifier = Modifier.testTag(TEST_TAG),
                 valueRange = 0f..4f,
                 value = 4f,
-                increaseIcon = { Icon(InlineSliderDefaults.Increase, "Increase") },
-                decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Decrease") },
                 steps = 3,
-                onValueChange = {}
+                onValueChange = {},
             )
         }
     }
 
     @Test
-    public fun inlineslider_with_decrease_button_disabled() {
+    fun slider_with_decrease_button_disabled() {
         verifyScreenshot {
-            InlineSlider(
+            Slider(
                 modifier = Modifier.testTag(TEST_TAG),
                 valueRange = 0f..4f,
                 value = 0f,
-                increaseIcon = { Icon(InlineSliderDefaults.Increase, "Increase") },
-                decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Decrease") },
                 steps = 3,
-                onValueChange = {}
+                onValueChange = {},
             )
         }
     }
 
     @Test
-    fun inlineslider_segmented_with_custom_colors() {
+    fun slider_segmented_with_custom_colors() {
         verifyScreenshot {
-            InlineSlider(
+            Slider(
                 modifier = Modifier.testTag(TEST_TAG),
                 value = 2f,
                 segmented = true,
-                increaseIcon = { Icon(InlineSliderDefaults.Increase, "Increase") },
-                decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Decrease") },
                 colors =
-                    InlineSliderDefaults.colors(
+                    SliderDefaults.sliderColors(
                         containerColor = Color.Green,
                         buttonIconColor = Color.Yellow,
                         selectedBarColor = Color.Magenta,
                         unselectedBarColor = Color.White,
-                        barSeparatorColor = Color.Cyan,
+                        selectedBarSeparatorColor = Color.Cyan,
+                        unselectedBarSeparatorColor = Color.Magenta,
                         disabledContainerColor = Color.DarkGray,
                         disabledButtonIconColor = Color.LightGray,
                         disabledSelectedBarColor = Color.Red,
                         disabledUnselectedBarColor = Color.Blue,
-                        disabledBarSeparatorColor = Color.Gray
+                        disabledSelectedBarSeparatorColor = Color.Gray,
+                        disabledUnselectedBarSeparatorColor = Color.Gray,
                     ),
                 onValueChange = {},
                 valueRange = 1f..4f,
-                steps = 2
+                steps = 2,
             )
         }
     }
 
     @Test
-    fun inlineslider_custom_icons() {
+    fun slider_custom_icons() {
         verifyScreenshot {
-            InlineSlider(
+            Slider(
                 modifier = Modifier.testTag(TEST_TAG),
                 value = 2f,
                 onValueChange = {},
@@ -217,45 +201,45 @@ class SliderScreenshotTest {
                 increaseIcon = {
                     Icon(imageVector = Icons.Filled.ThumbUp, contentDescription = "")
                 },
-                steps = 2
+                steps = 2,
             )
         }
     }
 
     @Test
-    fun inlineslider_segmented_with_custom_colors_disabled() {
+    fun slider_segmented_with_custom_colors_disabled() {
         verifyScreenshot {
-            InlineSlider(
+            Slider(
                 modifier = Modifier.testTag(TEST_TAG),
                 value = 2f,
                 enabled = false,
                 segmented = true,
-                increaseIcon = { Icon(InlineSliderDefaults.Increase, "Increase") },
-                decreaseIcon = { Icon(InlineSliderDefaults.Decrease, "Decrease") },
                 colors =
-                    InlineSliderDefaults.colors(
+                    SliderDefaults.sliderColors(
                         containerColor = Color.Green,
                         buttonIconColor = Color.Yellow,
                         selectedBarColor = Color.Magenta,
                         unselectedBarColor = Color.White,
-                        barSeparatorColor = Color.Cyan,
+                        selectedBarSeparatorColor = Color.Cyan,
+                        unselectedBarSeparatorColor = Color.Magenta,
                         disabledContainerColor = Color.DarkGray,
                         disabledButtonIconColor = Color.LightGray,
                         disabledSelectedBarColor = Color.Red,
                         disabledUnselectedBarColor = Color.Blue,
-                        disabledBarSeparatorColor = Color.Gray
+                        disabledSelectedBarSeparatorColor = Color.Gray,
+                        disabledUnselectedBarSeparatorColor = Color.Gray,
                     ),
                 onValueChange = {},
                 valueRange = 1f..4f,
-                steps = 2
+                steps = 2,
             )
         }
     }
 
     @Test
-    fun inlineslider_custom_icons_disabled() {
+    fun slider_custom_icons_disabled() {
         verifyScreenshot {
-            InlineSlider(
+            Slider(
                 modifier = Modifier.testTag(TEST_TAG),
                 value = 2f,
                 enabled = false,
@@ -265,7 +249,7 @@ class SliderScreenshotTest {
                 increaseIcon = {
                     Icon(imageVector = Icons.Filled.ThumbUp, contentDescription = "")
                 },
-                steps = 2
+                steps = 2,
             )
         }
     }
