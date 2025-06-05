@@ -357,6 +357,7 @@ atomicGroupVersion = "versions.WEAR_COMPOSE"
 overrideInclude = [
     ":wear:compose:compose-foundation",
     ":wear:compose:compose-material",
+    ":wear:compose:compose-material3",
     ":wear:compose:compose-material-core",
     ":wear:compose:compose-navigation"
 ]
