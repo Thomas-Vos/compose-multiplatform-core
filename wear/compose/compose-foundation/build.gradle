@@ -39,6 +39,10 @@ JetbrainsAndroidXPlugin.applyAndConfigure(project)
 
 androidXComposeMultiplatform {
     android()
+    desktop()
+    darwin()
+    js()
+    wasm()
 }
 
 kotlin {
