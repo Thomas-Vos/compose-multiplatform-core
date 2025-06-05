@@ -268,3 +268,5 @@ includeBuild("placeholder")
 
 includeProject(":mpp")
 includeProject(":performance:performance-annotation")
+
+includeProject(":wear:compose:compose-foundation")
