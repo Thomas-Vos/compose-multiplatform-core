@@ -261,3 +261,5 @@ includeBuild("placeholder")
 
 includeProject(":mpp")
 
+
+includeProject(":wear:compose:compose-foundation")

@@ -16,286 +16,223 @@
 
 package androidx.wear.compose.foundation.rotary
 
+import android.R
+import android.app.Activity
 import android.os.Build
-import android.view.ScrollFeedbackProvider
-import android.view.ViewConfiguration
-import androidx.compose.foundation.gestures.ScrollableDefaults
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.ExperimentalTestApi
+import android.provider.Settings
+import android.view.View
+import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performRotaryScrollInput
-import androidx.compose.ui.unit.dp
-import androidx.test.filters.SdkSuppress
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.foundation.rotary.RotaryScrollTest.Companion.TEST_TAG
-import com.google.common.truth.Truth
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowBuild
 
-@SdkSuppress(minSdkVersion = Build.VERSION_CODES.VANILLA_ICE_CREAM)
-@OptIn(ExperimentalTestApi::class)
+@RunWith(JUnit4::class)
+class ThrottleLatestTest {
+    private lateinit var testChannel: Channel<RotaryHapticsType>
+
+    @Before
+    fun before() {
+        testChannel = Channel(capacity = 10, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    }
+
+    @Test
+    fun single_event_sent() = runTest {
+        val testFlow = testChannel.receiveAsFlow().throttleLatest(40)
+        val expectedItemsSize = 1
+
+        launch {
+            testChannel.trySend(RotaryHapticsType.ScrollTick)
+            testChannel.close()
+        }
+        val actualItems = testFlow.toList()
+
+        assertEquals(expectedItemsSize, actualItems.size)
+    }
+
+    @Test
+    fun three_events_sent_one_filtered() = runTest {
+        val testFlow = testChannel.receiveAsFlow().throttleLatest(40)
+        val expectedItemsSize = 2
+
+        // Send 3 events, receive 2 because they fall into a single timeframe and only
+        // 1st and last items are returned
+        launch {
+            testChannel.sendEventsWithDelay(RotaryHapticsType.ScrollTick, 3, 10)
+            testChannel.close()
+        }
+        val actualItems = testFlow.toList()
+
+        assertEquals(expectedItemsSize, actualItems.size)
+    }
+
+    @Test
+    fun three_events_sent_none_filtered() = runTest {
+        val testFlow = testChannel.receiveAsFlow().throttleLatest(40)
+        val expectedItemsSize = 3
+        // Sent 3 events, received 3 because delay between events is bigger than a timeframe
+        launch {
+            testChannel.sendEventsWithDelay(RotaryHapticsType.ScrollTick, 3, 50)
+            testChannel.close()
+        }
+        val actualItems = testFlow.toList()
+
+        assertEquals(expectedItemsSize, actualItems.size)
+    }
+
+    @Test
+    fun three_slow_and_five_fast() = runTest {
+        val testFlow = testChannel.receiveAsFlow().throttleLatest(40)
+        val expectedItemsSize = 5
+        launch {
+            // Sent 3 events, received 3 because delay between events is bigger than a timeframe
+            testChannel.sendEventsWithDelay(RotaryHapticsType.ScrollTick, 3, 50)
+            delay(50)
+            // Sent 5 events, received 2 (first and last) because delay between events
+            // was smaller than a timeframe
+            testChannel.sendEventsWithDelay(RotaryHapticsType.ScrollTick, 5, 5)
+            delay(5)
+            testChannel.close()
+        }
+
+        val actualItems = testFlow.toList()
+
+        assertEquals(expectedItemsSize, actualItems.size)
+    }
+
+    private suspend fun Channel<RotaryHapticsType>.sendEventsWithDelay(
+        event: RotaryHapticsType,
+        eventCount: Int,
+        delayMillis: Long,
+    ) {
+        for (i in 0 until eventCount) {
+            trySend(event)
+            if (i < eventCount - 1) {
+                delay(delayMillis)
+            }
+        }
+    }
+}
+
+@RunWith(RobolectricTestRunner::class)
 class HapticsTest {
+
     @get:Rule val rule = createComposeRule()
-    private val focusRequester = FocusRequester()
 
     @Test
-    fun platformHaptics_scrollProgressCalled_once() {
+    @Config(sdk = [33])
+    fun testPixelWatch1Wear4() {
+        ShadowBuild.setManufacturer("Google")
+        ShadowBuild.setModel("Google Pixel Watch")
 
-        val mockedScrollFeedbackProvider = MockedScrollFeedbackProvider()
-        rule.setContent { SLCRotaryFling(mockedScrollFeedbackProvider) }
-        rule.runOnIdle { focusRequester.requestFocus() }
-
-        rule.onNodeWithTag(TEST_TAG).performRotaryScrollInput { rotateToScrollVertically(10f) }
-
-        Truth.assertThat(mockedScrollFeedbackProvider.onScrollProgressCounter).isEqualTo(1)
-        Truth.assertThat(mockedScrollFeedbackProvider.onSnapToItemCounter).isEqualTo(0)
-        Truth.assertThat(mockedScrollFeedbackProvider.onScrollLimitCounter).isEqualTo(0)
+        assertEquals(HapticConstants.Wear4RotaryHapticConstants, getHapticConstants())
     }
 
     @Test
-    fun platformHaptics_scrollProgressCalled_multipleTimes() {
+    @Config(sdk = [30])
+    fun testPixelWatch1Wear35() {
+        ShadowBuild.setManufacturer("Google")
+        ShadowBuild.setModel("Google Pixel Watch")
+        Settings.Global.putString(
+            RuntimeEnvironment.getApplication().contentResolver,
+            "wear_platform_mr_number",
+            "5",
+        )
 
-        val mockedScrollFeedbackProvider = MockedScrollFeedbackProvider()
-        rule.setContent { SLCRotaryFling(mockedScrollFeedbackProvider) }
-        rule.runOnIdle { focusRequester.requestFocus() }
-
-        rule.onNodeWithTag(TEST_TAG).performRotaryScrollInput {
-            rotateToScrollVertically(10f)
-            advanceEventTime(10)
-            rotateToScrollVertically(10f)
-            advanceEventTime(10)
-            rotateToScrollVertically(10f)
-        }
-
-        Truth.assertThat(mockedScrollFeedbackProvider.onScrollProgressCounter).isEqualTo(3)
-        Truth.assertThat(mockedScrollFeedbackProvider.onSnapToItemCounter).isEqualTo(0)
-        Truth.assertThat(mockedScrollFeedbackProvider.onScrollLimitCounter).isEqualTo(0)
+        assertEquals(HapticConstants.Wear3Point5RotaryHapticConstants, getHapticConstants())
     }
 
     @Test
-    fun platformHaptics_scrollLimitCalled() {
+    @Config(sdk = [33])
+    fun testGenericWear4() {
+        ShadowBuild.setManufacturer("XXX")
+        ShadowBuild.setModel("YYY")
 
-        val mockedScrollFeedbackProvider = MockedScrollFeedbackProvider()
-        rule.setContent { SLCRotaryFling(mockedScrollFeedbackProvider) }
-        rule.runOnIdle { focusRequester.requestFocus() }
-
-        rule.onNodeWithTag(TEST_TAG).performRotaryScrollInput {
-            // Scroll the rotary forwards and then backwards so that we'll reach the edge of the
-            // list.
-            rotateToScrollVertically(10f)
-            advanceEventTime(10)
-            rotateToScrollVertically(-11f)
-        }
-
-        Truth.assertThat(mockedScrollFeedbackProvider.onScrollLimitCounter).isEqualTo(1)
+        assertEquals(HapticConstants.Wear4RotaryHapticConstants, getHapticConstants())
     }
 
     @Test
-    fun platformHaptics_snapToItemCalled_once_highRes() {
+    @Config(sdk = [30])
+    fun testGenericWear35() {
+        ShadowBuild.setManufacturer("XXX")
+        ShadowBuild.setModel("YYY")
+        Settings.Global.putString(
+            RuntimeEnvironment.getApplication().contentResolver,
+            "wear_platform_mr_number",
+            "5",
+        )
 
-        val mockedScrollFeedbackProvider = MockedScrollFeedbackProvider()
-        rule.setContent { SLCHighResRotarySnap(mockedScrollFeedbackProvider) }
-        rule.runOnIdle { focusRequester.requestFocus() }
-
-        rule.onNodeWithTag(TEST_TAG).performRotaryScrollInput { rotateToScrollVertically(100f) }
-        Truth.assertThat(mockedScrollFeedbackProvider.onSnapToItemCounter).isEqualTo(1)
+        assertEquals(HapticConstants.Wear3Point5RotaryHapticConstants, getHapticConstants())
     }
 
     @Test
-    fun platformHaptics_snapToItemCalled_multipleTimes_highRes() {
+    @Config(sdk = [30])
+    fun testGenericWear3() {
+        ShadowBuild.setManufacturer("XXX")
+        ShadowBuild.setModel("YYY")
 
-        val mockedScrollFeedbackProvider = MockedScrollFeedbackProvider()
-        rule.setContent { SLCHighResRotarySnap(mockedScrollFeedbackProvider) }
-        rule.runOnIdle { focusRequester.requestFocus() }
-
-        rule.onNodeWithTag(TEST_TAG).performRotaryScrollInput {
-            rotateToScrollVertically(100f)
-            advanceEventTime(10)
-            rotateToScrollVertically(100f)
-            advanceEventTime(10)
-            rotateToScrollVertically(100f)
-        }
-        Truth.assertThat(mockedScrollFeedbackProvider.onSnapToItemCounter).isEqualTo(3)
+        assertEquals(HapticConstants.DisabledHapticConstants, getHapticConstants())
     }
 
     @Test
-    fun platformHaptics_snapToItemCalled_once_lowRes() {
+    @Config(sdk = [28])
+    fun testGenericWear2() {
+        ShadowBuild.setManufacturer("XXX")
+        ShadowBuild.setModel("YYY")
 
-        val mockedScrollFeedbackProvider = MockedScrollFeedbackProvider()
-        rule.setContent { SLCLowResRotarySnap(mockedScrollFeedbackProvider) }
-        rule.runOnIdle { focusRequester.requestFocus() }
-
-        rule.onNodeWithTag(TEST_TAG).performRotaryScrollInput { rotateToScrollVertically(100f) }
-        Truth.assertThat(mockedScrollFeedbackProvider.onSnapToItemCounter).isEqualTo(1)
+        assertEquals(HapticConstants.DisabledHapticConstants, getHapticConstants())
     }
 
     @Test
-    fun platformHaptics_snapToItemCalled_multipleTimes_lowRes() {
+    @Config(sdk = [33])
+    fun testGalaxyWatchClassic() {
+        ShadowBuild.setManufacturer("Samsung")
+        // Galaxy Watch4 Classic
+        ShadowBuild.setModel("SM-R890")
 
-        val mockedScrollFeedbackProvider = MockedScrollFeedbackProvider()
-        rule.setContent { SLCLowResRotarySnap(mockedScrollFeedbackProvider) }
-        rule.runOnIdle { focusRequester.requestFocus() }
-
-        rule.onNodeWithTag(TEST_TAG).performRotaryScrollInput {
-            rotateToScrollVertically(100f)
-            advanceEventTime(10)
-            rotateToScrollVertically(100f)
-            advanceEventTime(10)
-            rotateToScrollVertically(100f)
-        }
-        Truth.assertThat(mockedScrollFeedbackProvider.onSnapToItemCounter).isEqualTo(3)
+        assertEquals(HapticConstants.GalaxyWatchConstants, getHapticConstants())
     }
 
-    @Composable
-    private fun SLCRotaryFling(scrollFeedbackProvider: ScrollFeedbackProvider) {
-        val scrollableState = rememberScalingLazyListState()
-        val viewConfiguration = ViewConfiguration.get(LocalContext.current)
-        val flingBehavior = ScrollableDefaults.flingBehavior()
+    @Test
+    @Config(sdk = [33])
+    fun testGalaxyWatch() {
+        ShadowBuild.setManufacturer("Samsung")
+        // Galaxy Watch 5 Pro
+        ShadowBuild.setModel("SM-R925")
 
-        ScalingLazyColumn(
-            state = scrollableState,
-            rotaryScrollableBehavior = null,
-            modifier =
-                Modifier.size(200.dp)
-                    .testTag(TEST_TAG)
-                    .rotaryScrollable(
-                        behavior =
-                            FlingRotaryScrollableBehavior(
-                                isLowRes = false,
-                                rotaryHaptics =
-                                    PlatformRotaryHapticHandler(
-                                        scrollableState,
-                                        scrollFeedbackProvider,
-                                    ),
-                                rotaryFlingHandlerFactory = { inputDeviceId, initialTimestamp ->
-                                    RotaryFlingHandler(
-                                        scrollableState = scrollableState,
-                                        flingBehavior = flingBehavior,
-                                        viewConfiguration = viewConfiguration,
-                                        flingTimeframe = 20,
-                                        inputDeviceId = inputDeviceId,
-                                        initialTimestamp = initialTimestamp,
-                                    )
-                                },
-                                scrollHandlerFactory = { RotaryScrollHandler(scrollableState) },
-                            ),
-                        focusRequester = focusRequester,
-                        reverseDirection = false,
-                    ),
-        ) {
-            items(300) { BasicText(text = "Item #$it") }
-        }
+        assertEquals(HapticConstants.GalaxyWatchConstants, getHapticConstants())
     }
 
-    @Composable
-    private fun SLCHighResRotarySnap(scrollFeedbackProvider: ScrollFeedbackProvider) {
-        val scrollableState = rememberScalingLazyListState()
-
-        val layoutInfoProvider =
-            remember(scrollableState) {
-                ScalingLazyColumnRotarySnapLayoutInfoProvider(scrollableState)
-            }
-        ScalingLazyColumn(
-            state = scrollableState,
-            // We need to switch off default rotary behavior
-            rotaryScrollableBehavior = null,
-            modifier =
-                Modifier.size(200.dp)
-                    .testTag(TEST_TAG)
-                    .rotaryScrollable(
-                        behavior =
-                            HighResSnapRotaryScrollableBehavior(
-                                rotaryHaptics =
-                                    PlatformRotaryHapticHandler(
-                                        scrollableState,
-                                        scrollFeedbackProvider,
-                                    ),
-                                scrollDistanceDivider =
-                                    RotarySnapSensitivity.DEFAULT.resistanceFactor,
-                                thresholdHandlerFactory = {
-                                    ThresholdHandler(
-                                        RotarySnapSensitivity.DEFAULT.minThresholdDivider,
-                                        RotarySnapSensitivity.DEFAULT.maxThresholdDivider,
-                                    ) {
-                                        50f
-                                    }
-                                },
-                                snapHandlerFactory = {
-                                    RotarySnapHandler(scrollableState, layoutInfoProvider, 0)
-                                },
-                                scrollHandlerFactory = { RotaryScrollHandler(scrollableState) },
-                            ),
-                        focusRequester = focusRequester,
-                        reverseDirection = false,
-                    ),
-        ) {
-            items(300) { BasicText(text = "Item #$it") }
+    @Test
+    @Config(sdk = [Build.VERSION_CODES.VANILLA_ICE_CREAM, Build.VERSION_CODES.UPSIDE_DOWN_CAKE])
+    fun testCustomHapticsHandler() {
+        var rotaryHapticsHandler: RotaryHapticHandler? = null
+        rule.setContent {
+            val scrollableState = rememberScrollableState { 0f }
+            rotaryHapticsHandler = rememberRotaryHapticHandler(scrollableState, true)
         }
+        assertEquals(rotaryHapticsHandler?.javaClass, CustomRotaryHapticHandler::class.java)
     }
 
-    @Composable
-    private fun SLCLowResRotarySnap(scrollFeedbackProvider: ScrollFeedbackProvider) {
-        val scrollableState = rememberScalingLazyListState()
-        val layoutInfoProvider =
-            remember(scrollableState) {
-                ScalingLazyColumnRotarySnapLayoutInfoProvider(scrollableState)
-            }
-        ScalingLazyColumn(
-            state = scrollableState,
-            // We need to switch off default rotary behavior
-            rotaryScrollableBehavior = null,
-            modifier =
-                Modifier.size(200.dp)
-                    .testTag(TEST_TAG)
-                    .rotaryScrollable(
-                        behavior =
-                            LowResSnapRotaryScrollableBehavior(
-                                rotaryHaptics =
-                                    PlatformRotaryHapticHandler(
-                                        scrollableState,
-                                        scrollFeedbackProvider,
-                                    ),
-                                snapHandlerFactory = {
-                                    RotarySnapHandler(scrollableState, layoutInfoProvider, 0)
-                                },
-                            ),
-                        focusRequester = focusRequester,
-                        reverseDirection = false,
-                    ),
-        ) {
-            items(300) { BasicText(text = "Item #$it") }
-        }
-    }
+    private fun getHapticConstants(): HapticConstants {
+        val activity = Robolectric.buildActivity(Activity::class.java).get()
+        val view = activity.findViewById<View>(R.id.content)
 
-    class MockedScrollFeedbackProvider() : ScrollFeedbackProvider {
-        var onSnapToItemCounter = 0
-        var onScrollLimitCounter = 0
-        var onScrollProgressCounter = 0
-
-        override fun onSnapToItem(inputDeviceId: Int, source: Int, axis: Int) {
-            onSnapToItemCounter++
-        }
-
-        override fun onScrollLimit(inputDeviceId: Int, source: Int, axis: Int, isStart: Boolean) {
-            onScrollLimitCounter++
-        }
-
-        override fun onScrollProgress(
-            inputDeviceId: Int,
-            source: Int,
-            axis: Int,
-            deltaInPixels: Int,
-        ) {
-            onScrollProgressCounter++
-        }
+        return getCustomRotaryConstants(view)
     }
 }
