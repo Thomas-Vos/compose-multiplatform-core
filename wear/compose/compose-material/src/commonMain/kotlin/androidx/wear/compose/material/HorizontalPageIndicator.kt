@@ -52,7 +52,7 @@ import androidx.wear.compose.material.PageIndicatorDefaults.MaxNumberOfIndicator
 import androidx.wear.compose.materialcore.BoundsLimiter
 import androidx.wear.compose.materialcore.PagesState
 import androidx.wear.compose.materialcore.isRoundDevice
-import java.lang.Integer.min
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**

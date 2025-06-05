@@ -15,16 +15,9 @@
  */
 package androidx.wear.compose.material
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.materialcore.isRoundDevice
 
 /** Possible combinations for vignette state. */
 @kotlin.jvm.JvmInline
@@ -82,32 +75,4 @@ public value class VignettePosition constructor(private val key: Int) {
  * @param modifier optional Modifier for the root of the [Vignette]
  */
 @Composable
-public fun Vignette(vignettePosition: VignettePosition, modifier: Modifier = Modifier) {
-
-    Box(modifier = modifier.fillMaxSize()) {
-        if (vignettePosition.drawTop()) {
-            Image(
-                painter =
-                    imageResource(
-                        if (isRoundDevice()) ImageResources.CircularVignetteTop
-                        else ImageResources.RectangularVignetteTop
-                    ),
-                contentScale = ContentScale.FillWidth,
-                contentDescription = null,
-                modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
-            )
-        }
-        if (vignettePosition.drawBottom()) {
-            Image(
-                painter =
-                    imageResource(
-                        if (isRoundDevice()) ImageResources.CircularVignetteBottom
-                        else ImageResources.RectangularVignetteBottom
-                    ),
-                contentScale = ContentScale.FillWidth,
-                contentDescription = null,
-                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
-            )
-        }
-    }
-}
+public expect fun Vignette(vignettePosition: VignettePosition, modifier: Modifier = Modifier)
