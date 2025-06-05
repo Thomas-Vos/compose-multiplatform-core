@@ -28,29 +28,28 @@ import androidx.navigation.Navigator
  * valid [Composable] by setting it directly on an instantiated [Destination] or calling
  * [composable].
  */
-@Navigator.Name("wear-navigator")
-public class WearNavigator : Navigator<WearNavigator.Destination>() {
+public actual class WearNavigator : Navigator<WearNavigator.Destination>(NAME) {
     /** Get the map of transitions currently in progress from the [state]. */
-    internal val transitionsInProgress
+    internal actual val transitionsInProgress
         get() = state.transitionsInProgress
 
     /** Get the back stack from the [state]. */
-    internal val backStack
+    internal actual val backStack
         get() = state.backStack
 
     /** Indicates if an entry is being popped from [backStack]. */
-    internal val isPop = mutableStateOf(false)
+    internal actual val isPop = mutableStateOf(false)
 
     override fun navigate(
         entries: List<NavBackStackEntry>,
         navOptions: NavOptions?,
-        navigatorExtras: Extras?,
+        navigatorExtras: Extras?
     ) {
         entries.forEach { entry -> state.pushWithTransition(entry) }
         isPop.value = false
     }
 
-    override fun createDestination(): Destination = Destination(this) {}
+    actual override fun createDestination() = Destination(this) {}
 
     override fun popBackStack(popUpTo: NavBackStackEntry, savedState: Boolean) {
         state.popWithTransition(popUpTo, savedState)
@@ -66,18 +65,17 @@ public class WearNavigator : Navigator<WearNavigator.Destination>() {
      * Failing to call this method could result in entries being prevented from reaching their final
      * Lifecycle.State.
      */
-    internal fun onTransitionComplete(entry: NavBackStackEntry) {
+    internal actual fun onTransitionComplete(entry: NavBackStackEntry) {
         state.markTransitionComplete(entry)
     }
 
     /** NavDestination specific to [WearNavigator] */
-    @NavDestination.ClassType(Composable::class)
-    public class Destination(
+    public actual class Destination actual constructor(
         navigator: WearNavigator,
-        internal val content: @Composable (NavBackStackEntry) -> Unit,
+        internal actual val content: @Composable (NavBackStackEntry) -> Unit
     ) : NavDestination(navigator)
 
-    internal companion object {
-        internal const val NAME = "wear-navigator"
+    internal actual companion object {
+        internal actual const val NAME = "wear-navigator"
     }
 }

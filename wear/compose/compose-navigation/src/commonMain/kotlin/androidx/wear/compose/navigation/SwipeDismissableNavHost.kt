@@ -16,11 +16,9 @@
 
 package androidx.wear.compose.navigation
 
-import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavGraph
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -133,22 +131,22 @@ public fun SwipeDismissableNavHost(
     userSwipeEnabled: Boolean = true,
     state: SwipeDismissableNavHostState = rememberSwipeDismissableNavHostState(),
 ) {
-    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+//    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.VANILLA_ICE_CREAM) {
         PredictiveBackNavHost(
             navController = navController,
             graph = graph,
             modifier = modifier,
             userSwipeEnabled = userSwipeEnabled,
         )
-    } else {
-        BasicSwipeToDismissBoxNavHost(
-            navController = navController,
-            graph = graph,
-            modifier = modifier,
-            userSwipeEnabled = userSwipeEnabled,
-            state = state,
-        )
-    }
+//    } else {
+//        BasicSwipeToDismissBoxNavHost(
+//            navController = navController,
+//            graph = graph,
+//            modifier = modifier,
+//            userSwipeEnabled = userSwipeEnabled,
+//            state = state,
+//        )
+//    }
 }
 
 /**
@@ -304,9 +302,6 @@ public fun rememberSwipeDismissableNavHostState(
 }
 
 @Composable
-internal fun isRoundDevice(): Boolean {
-    val configuration = LocalConfiguration.current
-    return remember(configuration) { configuration.isScreenRound }
-}
+internal expect fun isRoundDevice(): Boolean
 
 internal const val TAG = "SwipeDismissableNavHost"
