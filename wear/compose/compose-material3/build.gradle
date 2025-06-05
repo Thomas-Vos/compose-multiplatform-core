@@ -76,7 +76,7 @@ kotlin {
                 implementation(libs.testParameterInjector)
                 implementation(libs.testRunner)
                 implementation(libs.truth)
-                implementation(project(":wear:compose:compose-material3-samples"))
+                implementation(androidxArtifact(":wear:compose:compose-material3-samples"))
                 implementation(libs.leakcanary)
                 implementation(libs.leakcanaryInstrumentation)
             }
