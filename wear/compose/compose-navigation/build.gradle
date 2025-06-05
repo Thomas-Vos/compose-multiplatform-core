@@ -64,7 +64,7 @@ kotlin {
                 implementation(project(":compose:ui:ui-test-junit4"))
                 implementation(libs.testRunner)
                 implementation(project(":wear:compose:compose-material"))
-                implementation(project(":wear:compose:compose-navigation-samples"))
+                implementation(androidxArtifact(":wear:compose:compose-navigation-samples"))
                 implementation(libs.truth)
                 implementation("androidx.lifecycle:lifecycle-runtime-testing:2.7.0")
                 implementation("androidx.navigation:navigation-testing:2.6.0")
