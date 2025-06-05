@@ -16,165 +16,94 @@
 
 package androidx.wear.compose.material3
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.SemanticsNodeInteraction
-import androidx.compose.ui.test.assertWidthIsEqualTo
-import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
-import junit.framework.TestCase.assertEquals
-import org.junit.Rule
+import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
+@RunWith(JUnit4::class)
 class ButtonGroupTest {
-    @get:Rule val rule = createComposeRule()
 
     @Test
-    fun supports_testtag() {
-        rule.setContentWithTheme {
-            ButtonGroup(modifier = Modifier.testTag(TEST_TAG)) {
-                Box(modifier = Modifier.fillMaxSize())
-            }
-        }
-
-        rule.onNodeWithTag(TEST_TAG).assertExists()
+    fun NoButtonsCase() {
+        checkResult(listOf(), computeWidths(listOf(), 0, 200))
     }
 
     @Test
-    fun two_items_equally_sized_by_default() =
-        verifyWidths(
-            2,
-            expectedWidths = { availableSpace -> arrayOf(availableSpace / 2, availableSpace / 2) },
-        )
-
-    @Test
-    fun two_items_one_double_size() =
-        verifyWidths(
-            2,
-            expectedWidths = { availableSpace ->
-                arrayOf(availableSpace / 3, availableSpace / 3 * 2)
-            },
-            minWidthAndWeights = arrayOf(25.dp to 1f, 25.dp to 2f),
-        )
-
-    @Test
-    fun respects_min_width() =
-        verifyWidths(
-            2,
-            expectedWidths = { availableSpace -> arrayOf(15.dp, availableSpace - 15.dp) },
-            size = 100.dp,
-            minWidthAndWeights = arrayOf(15.dp to 1f, 15.dp to 10f),
-        )
-
-    @Test
-    fun three_equal_buttons() =
-        verifyWidths(3, expectedWidths = { availableSpace -> Array(3) { availableSpace / 3 } })
-
-    @Test
-    fun three_buttons_one_two_one() =
-        verifyWidths(
-            3,
-            expectedWidths = { availableSpace ->
-                arrayOf(availableSpace / 4, availableSpace / 2, availableSpace / 4)
-            },
-            minWidthAndWeights = arrayOf(25.dp to 1f, 25.dp to 2f, 25.dp to 1f),
-        )
-
-    @Test
-    fun modifier_order_ignored() {
-        val size = 150.dp
-        rule.setContentWithTheme {
-            ButtonGroup(
-                modifier = Modifier.size(size),
-                contentPadding = PaddingValues(0.dp),
-                spacing = 0.dp,
-            ) {
-                Box(Modifier.weight(1f).minWidth(30.dp).testTag("${TEST_TAG}0"))
-                Box(Modifier.minWidth(30.dp).weight(1f).testTag("${TEST_TAG}1"))
-                Box(Modifier.weight(2f).minWidth(30.dp).testTag("${TEST_TAG}2"))
-                Box(Modifier.minWidth(30.dp).weight(2f).testTag("${TEST_TAG}3"))
-            }
-        }
-
-        // Items 0 & 1 should be 60.dp, 2 & 3 should be 90.dp
-        listOf(30.dp, 30.dp, 45.dp, 45.dp).forEachIndexed { index, dp ->
-            rule.onNodeWithTag(TEST_TAG + index.toString()).assertWidthIsEqualTo(dp)
-        }
+    fun OneButtonCase() {
+        checkResult(listOf(200), computeWidths(listOf(40f to 1f), 0, 200))
     }
 
     @Test
-    fun rtl_inverts_order() {
-        rule.setContentWithTheme {
-            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-                ButtonGroup(
-                    modifier = Modifier.size(150.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    spacing = 0.dp,
-                ) {
-                    Box(Modifier.testTag("${TEST_TAG}0"))
-                    Box(Modifier.testTag("${TEST_TAG}1"))
-                }
-            }
-        }
-
-        rule.waitForIdle()
-
-        val (n0Left, _) = rule.onNodeWithTag("${TEST_TAG}0").getXRange()
-        val (_, n1Right) = rule.onNodeWithTag("${TEST_TAG}1").getXRange()
-
-        assertEquals(n0Left, n1Right)
+    fun SimpleCase() {
+        checkResult(
+            listOf(100, 50, 50),
+            computeWidths(listOf(40f to 2f, 40f to 1f, 40f to 1f), 0, 200),
+        )
     }
 
-    private fun SemanticsNodeInteraction.getXRange() =
-        fetchSemanticsNode("Failed to retrieve bounds of the node.").let { node ->
-            node.positionInRoot.x to node.positionInRoot.x + node.size.width
-        }
+    @Test
+    fun UsesSpacing() {
+        checkResult(
+            listOf(80, 40, 40),
+            computeWidths(listOf(40f to 2f, 40f to 1f, 40f to 1f), 20, 200),
+        )
+    }
 
-    private fun verifyWidths(
-        numItems: Int,
-        expectedWidths: (Dp) -> Array<Dp>,
-        size: Dp = 150.dp,
-        spacing: Dp = 5.dp,
-        minWidthAndWeights: Array<Pair<Dp, Float>> = Array(numItems) { 24.dp to 1f },
-    ) {
-        val horizontalPadding = 5.dp
-        val actualExpectedWidths =
-            expectedWidths(size - horizontalPadding * 2 - spacing * (numItems - 1))
+    @Test
+    fun MinWidthRequirementDonatedEqually() {
+        checkResult(
+            // The weights alone will give 64 64 32, but that will put the last one under the
+            // minimum
+            listOf(60, 60, 40),
+            computeWidths(listOf(40f to 2f, 40f to 2f, 40f to 1f), 20, 200),
+        )
+    }
 
-        require(numItems == actualExpectedWidths.size)
-        require(numItems == minWidthAndWeights.size)
+    @Test
+    fun MinWidthRequirementDonatedProportionally() {
+        checkResult(
+            // The weights alone will give 90 60 30, but that will put the last one under the
+            // minimum, they give according to their weight
+            // (they need to give 10, so they give 6 & 4)
+            listOf(84, 56, 40),
+            computeWidths(listOf(40f to 3f, 40f to 2f, 40f to 1f), 0, 180),
+        )
+    }
 
-        rule.setContentWithTheme {
-            ButtonGroup(
-                modifier = Modifier.size(size),
-                contentPadding = PaddingValues(horizontal = horizontalPadding),
-                spacing = spacing,
-            ) {
-                repeat(numItems) { ix ->
-                    Box(
-                        modifier =
-                            Modifier.testTag(TEST_TAG + (ix + 1).toString())
-                                .fillMaxSize()
-                                .weight(minWidthAndWeights[ix].second)
-                                .minWidth(minWidthAndWeights[ix].first)
-                    )
-                }
-            }
-        }
+    @Test
+    fun CascadingBorrow() {
+        checkResult(
+            // The weights alone will give: 36.956 40.652 44.347 48.043
+            // Setting the first to 40 and redistributing gives: 40 39.722 43.333 46.444
+            // Doing that again gives the final result.
+            listOf(40, 40, 43, 47),
+            computeWidths(listOf(40f to 1f, 40f to 1.1f, 40f to 1.2f, 40f to 1.3f), 10, 200),
+        ) // Actually available  = 200 - 3 * 10 = 170
+    }
 
-        repeat(numItems) {
-            rule
-                .onNodeWithTag(TEST_TAG + (it + 1).toString())
-                .assertWidthIsEqualTo(actualExpectedWidths[it])
+    @Test
+    fun ZeroWeight() {
+        checkResult(
+            // Only items with weight > 0 grow
+            listOf(80, 80, 40),
+            computeWidths(listOf(40f to 1f, 40f to 1f, 40f to 0f), 0, 200),
+        )
+    }
+
+    @Test
+    fun ZeroWeightPlusVariedWeights() {
+        checkResult(
+            // Only items with weight > 0 grow, first item should be twice as big as second one.
+            listOf(100, 50, 50),
+            computeWidths(listOf(40f to 2f, 40f to 1f, 50f to 0f), 0, 200),
+        )
+    }
+
+    private fun checkResult(expected: List<Int>, actual: IntArray) {
+        assertEquals(expected.size, actual.size)
+        for (i in expected.indices) {
+            assertEquals("Index $i", expected[i], actual[i])
         }
     }
 }
