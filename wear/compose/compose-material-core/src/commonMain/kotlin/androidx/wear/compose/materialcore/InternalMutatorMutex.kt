@@ -16,10 +16,9 @@
 
 package androidx.wear.compose.materialcore
 
-import androidx.annotation.RestrictTo
 import androidx.compose.foundation.MutatePriority
 import androidx.compose.runtime.Stable
-import java.util.concurrent.atomic.AtomicReference
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -43,7 +42,6 @@ import kotlinx.coroutines.sync.withLock
  * may want to manipulate over time such that those mutators can coordinate with one another. The
  * [InternalMutatorMutex] instance should be hidden as an implementation detail. For example:
  */
-@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 @Stable
 public class InternalMutatorMutex {
     private class Mutator(val priority: MutatePriority, val job: Job) {
@@ -52,12 +50,12 @@ public class InternalMutatorMutex {
         fun cancel() = job.cancel()
     }
 
-    private val currentMutator = AtomicReference<Mutator?>(null)
+    private val currentMutator = atomic<Mutator?>(null)
     private val mutex = Mutex()
 
     private fun tryMutateOrCancel(mutator: Mutator) {
         while (true) {
-            val oldMutator = currentMutator.get()
+            val oldMutator = currentMutator.value
             if (oldMutator == null || mutator.canInterrupt(oldMutator)) {
                 if (currentMutator.compareAndSet(oldMutator, mutator)) {
                     oldMutator?.cancel()

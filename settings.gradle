@@ -263,3 +263,4 @@ includeProject(":mpp")
 
 
 includeProject(":wear:compose:compose-foundation")
+includeProject(":wear:compose:compose-material-core")

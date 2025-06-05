@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-@file:SuppressLint("PrimitiveInCollection")
-
 package androidx.wear.compose.materialcore
 
-import android.annotation.SuppressLint
 import androidx.annotation.FloatRange
 import androidx.annotation.RestrictTo
 import androidx.compose.animation.core.AnimationSpec
