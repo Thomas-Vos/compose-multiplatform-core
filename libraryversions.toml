@@ -350,3 +350,14 @@ overrideInclude = [
     ":savedstate:savedstate",
     ":savedstate:savedstate-compose"
 ]
+
+[groups.WEAR_COMPOSE_JETBRAINS]
+group = "org.jetbrains.androidx.wear.compose"
+atomicGroupVersion = "versions.WEAR_COMPOSE"
+overrideInclude = [
+    ":wear:compose:compose-foundation",
+    ":wear:compose:compose-material",
+    ":wear:compose:compose-material3",
+    ":wear:compose:compose-material-core",
+    ":wear:compose:compose-navigation"
+]
