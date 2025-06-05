@@ -68,7 +68,7 @@ kotlin {
                 implementation(project(":compose:ui:ui-test"))
                 implementation(project(":compose:ui:ui-test-junit4"))
                 implementation(project(":compose:test-utils"))
-                implementation(project(":test:screenshot:screenshot"))
+                implementation(androidxArtifact(":test:screenshot:screenshot"))
                 implementation(libs.testRunner)
                 implementation(libs.truth)
             }
