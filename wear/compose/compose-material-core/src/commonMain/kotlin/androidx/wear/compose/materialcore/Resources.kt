@@ -16,17 +16,14 @@
 
 package androidx.wear.compose.materialcore
 
-import android.provider.Settings
-import android.text.format.DateFormat
 import androidx.annotation.RestrictTo
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 @Composable
@@ -37,52 +34,46 @@ public fun isLayoutDirectionRtl(): Boolean {
 
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 @Composable
-public fun isRoundDevice(): Boolean {
-    val configuration = LocalConfiguration.current
-    return configuration.isScreenRound
-}
+public expect fun isRoundDevice(): Boolean
 
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 @Composable
-public fun isLeftyModeEnabled(): Boolean {
-    val context = LocalContext.current
-    return remember(context) {
-        Settings.System.getInt(
-            context.contentResolver,
-            Settings.System.USER_ROTATION,
-            android.view.Surface.ROTATION_0,
-        ) == android.view.Surface.ROTATION_180
+public expect fun isLeftyModeEnabled(): Boolean
+
+@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+@Composable
+public fun screenHeightDp(): Int {
+    val density = LocalDensity.current
+    val windowInfo = LocalWindowInfo.current
+    return with(density) {
+        windowInfo.containerSize.height.toDp().value.roundToInt()
     }
 }
 
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 @Composable
-public fun is24HourFormat(): Boolean = DateFormat.is24HourFormat(LocalContext.current)
-
-@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-public fun currentTimeMillis(): Long = System.currentTimeMillis()
-
-@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-@Composable
-public fun screenHeightDp(): Int = LocalConfiguration.current.screenHeightDp
-
-@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-@Composable
 public fun screenHeightPx(): Int =
-    with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.roundToPx() }
+    with(LocalDensity.current) { screenHeightDp().dp.roundToPx() }
 
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 @Composable
-public fun screenWidthDp(): Int = LocalConfiguration.current.screenWidthDp
+public fun screenWidthDp(): Int {
+    val density = LocalDensity.current
+    val windowInfo = LocalWindowInfo.current
+    return with(density) {
+        windowInfo.containerSize.width.toDp().value.roundToInt()
+    }
+}
 
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 @Composable
 public fun isSmallScreen(): Boolean =
-    LocalConfiguration.current.screenWidthDp < LARGE_SCREEN_WIDTH_DP
+    screenWidthDp() < LARGE_SCREEN_WIDTH_DP
 
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 @Composable
 public fun isLargeScreen(): Boolean =
-    LocalConfiguration.current.screenWidthDp >= LARGE_SCREEN_WIDTH_DP
+    screenWidthDp() >= LARGE_SCREEN_WIDTH_DP
 
-@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP) public const val LARGE_SCREEN_WIDTH_DP: Int = 225
+@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+public const val LARGE_SCREEN_WIDTH_DP: Int = 225
