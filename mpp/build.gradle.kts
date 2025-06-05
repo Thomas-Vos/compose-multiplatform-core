@@ -125,6 +125,12 @@ val libraryToComponents = mapOf(
     "WINDOW" to listOf(
         ComposeComponent(":window:window-core", viewModelPlatforms),
     ),
+    "WEAR_COMPOSE" to listOf(
+        ComposeComponent(":wear:compose:compose-foundation"),
+        ComposeComponent(":wear:compose:compose-material"),
+        ComposeComponent(":wear:compose:compose-material-core"),
+        ComposeComponent(":wear:compose:compose-navigation")
+    )
 )
 
 val libraryToTasks = mapOf(
