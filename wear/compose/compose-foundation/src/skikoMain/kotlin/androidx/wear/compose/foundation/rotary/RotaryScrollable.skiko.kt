@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Android Open Source Project
+ * Copyright 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package androidx.wear.compose.foundation
+package androidx.wear.compose.foundation.rotary
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalConfiguration
 
+
+/** Returns whether the input is Low-res (a bezel) or high-res (a crown/rsb). */
 @Composable
-internal fun isRoundDevice(): Boolean {
-    val configuration = LocalConfiguration.current
-    return remember(configuration) { configuration.isScreenRound }
-}
+internal actual fun isLowResInput(): Boolean = false

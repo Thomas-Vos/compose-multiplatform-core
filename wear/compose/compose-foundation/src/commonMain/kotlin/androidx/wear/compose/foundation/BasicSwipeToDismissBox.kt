@@ -16,7 +16,6 @@
 
 package androidx.wear.compose.foundation
 
-import android.os.Build
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.SpringSpec
@@ -27,7 +26,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -42,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
@@ -54,8 +51,8 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
@@ -114,7 +111,8 @@ public fun BasicSwipeToDismissBox(
     content: @Composable BoxScope.(isBackground: Boolean) -> Unit,
 ) {
     val density = LocalDensity.current
-    val maxWidthPx = with(density) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+    val windowInfo = LocalWindowInfo.current
+    val maxWidthPx = windowInfo.containerSize.width.toFloat()
     SideEffect {
         val anchors =
             mapOf(SwipeToDismissValue.Default to 0f, SwipeToDismissValue.Dismissed to maxWidthPx)
@@ -127,7 +125,7 @@ public fun BasicSwipeToDismissBox(
             modifier
                 .fillMaxSize()
                 .then(
-                    if (userSwipeEnabled && Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU) {
+                    if (userSwipeEnabled) {
                         Modifier.systemGestureExclusion()
                     } else {
                         Modifier
@@ -530,9 +528,9 @@ public fun Modifier.edgeSwipeToDismiss(
     swipeToDismissBoxState: SwipeToDismissBoxState,
     edgeWidth: Dp = SwipeToDismissBoxDefaults.EdgeWidth,
 ): Modifier =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-        this // Edge swipe to dismiss doesn't work on API >= 35 for now
-    } else
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+//        this // Edge swipe to dismiss doesn't work on API >= 35 for now
+//    } else
         composed(
             inspectorInfo =
                 debugInspectorInfo {
@@ -619,3 +617,5 @@ private const val SCALE_MIN = 0.7f
 private const val MAX_CONTENT_SCRIM_ALPHA = 0.3f
 private const val MAX_BACKGROUND_SCRIM_ALPHA = 0.5f
 private val SWIPE_TO_DISMISS_BOX_ANIMATION_SPEC = TweenSpec<Float>(200, 0, LinearOutSlowInEasing)
+
+internal expect fun Modifier.systemGestureExclusion(): Modifier

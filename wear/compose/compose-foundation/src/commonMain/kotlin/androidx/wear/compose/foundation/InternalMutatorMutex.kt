@@ -18,6 +18,7 @@ package androidx.wear.compose.foundation
 
 import androidx.compose.foundation.MutatePriority
 import androidx.compose.runtime.Stable
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -50,12 +51,12 @@ internal class InternalMutatorMutex {
         fun cancel() = job.cancel()
     }
 
-    private val currentMutator = java.util.concurrent.atomic.AtomicReference<Mutator?>(null)
+    private val currentMutator = atomic<Mutator?>(null)
     private val mutex = Mutex()
 
     private fun tryMutateOrCancel(mutator: Mutator) {
         while (true) {
-            val oldMutator = currentMutator.get()
+            val oldMutator = currentMutator.value
             if (oldMutator == null || mutator.canInterrupt(oldMutator)) {
                 if (currentMutator.compareAndSet(oldMutator, mutator)) {
                     oldMutator?.cancel()

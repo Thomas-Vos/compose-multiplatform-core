@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright 2025 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,48 +16,8 @@
 
 package androidx.wear.compose.foundation
 
-import android.graphics.Paint.LINEAR_TEXT_FLAG
-import android.graphics.Paint.SUBPIXEL_TEXT_FLAG
-import android.graphics.Typeface
-import android.text.StaticLayout
-import android.text.TextPaint
-import android.text.TextUtils
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.isSpecified
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.layout.Measurable
-import androidx.compose.ui.layout.Placeable
-import androidx.compose.ui.platform.LocalFontFamilyResolver
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontSynthesis
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.font.resolveAsTypeface
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
-import androidx.compose.ui.unit.isSpecified
-import androidx.compose.ui.unit.isUnspecified
-import kotlin.math.abs
-import kotlin.math.min
-import kotlin.math.roundToInt
-import kotlin.math.sqrt
 
 /**
  * [basicCurvedText] is a component allowing developers to easily write curved text following the
@@ -74,12 +34,12 @@ import kotlin.math.sqrt
  * @param style A @Composable factory to provide the style to use. This composable SHOULDN'T
  *   generate any compose nodes.
  */
-public fun CurvedScope.basicCurvedText(
+public actual fun CurvedScope.basicCurvedText(
     text: String,
-    modifier: CurvedModifier = CurvedModifier,
-    angularDirection: CurvedDirection.Angular? = null,
-    overflow: TextOverflow = TextOverflow.Clip,
-    style: @Composable () -> CurvedTextStyle = { CurvedTextStyle() },
+    modifier: CurvedModifier,
+    angularDirection: CurvedDirection.Angular?,
+    overflow: TextOverflow,
+    style: @Composable () -> CurvedTextStyle,
 ): Unit =
     add(
         CurvedTextChild(
@@ -90,28 +50,6 @@ public fun CurvedScope.basicCurvedText(
         ),
         modifier,
     )
-
-/**
- * [basicCurvedText] is a component allowing developers to easily write curved text following the
- * curvature a circle (usually at the edge of a circular screen). [basicCurvedText] can be only
- * created within a [CurvedLayout] since it's not a composable.
- *
- * @sample androidx.wear.compose.foundation.samples.CurvedAndNormalText
- * @param text The text to display
- * @param style A style to use.
- * @param modifier The [CurvedModifier] to apply to this curved text.
- * @param angularDirection Specify if the text is laid out clockwise or anti-clockwise, and if those
- *   needs to be reversed in a Rtl layout. If not specified, it will be inherited from the enclosing
- *   [curvedRow] or [CurvedLayout] See [CurvedDirection.Angular].
- * @param overflow How visual overflow should be handled.
- */
-public fun CurvedScope.basicCurvedText(
-    text: String,
-    style: CurvedTextStyle,
-    modifier: CurvedModifier = CurvedModifier,
-    angularDirection: CurvedDirection.Angular? = null,
-    overflow: TextOverflow = TextOverflow.Clip,
-): Unit = basicCurvedText(text, modifier, angularDirection, overflow) { style }
 
 internal class CurvedTextChild(
     val text: String,
@@ -269,11 +207,11 @@ internal class CurvedTextDelegate {
     ) {
         if (
             text != this.text ||
-                clockwise != this.clockwise ||
-                fontSizePx != this.fontSizePx ||
-                letterSpacing != this.letterSpacing ||
-                density != this.density ||
-                lineHeightPx != lastLineHeightPx
+            clockwise != this.clockwise ||
+            fontSizePx != this.fontSizePx ||
+            letterSpacing != this.letterSpacing ||
+            density != this.density ||
+            lineHeightPx != lastLineHeightPx
         ) {
             this.text = text
             this.clockwise = clockwise
@@ -419,9 +357,9 @@ internal class CurvedTextDelegate {
             paint.color = color.toArgb()
             val actualText =
                 if (
-                    // Float arithmetic can make the parentSweepRadians slightly smaller
+                // Float arithmetic can make the parentSweepRadians slightly smaller
                     layoutInfo.sweepRadians <= parentSweepRadians + 0.001f ||
-                        overflow == TextOverflow.Visible
+                    overflow == TextOverflow.Visible
                 ) {
                     text
                 } else {
@@ -444,11 +382,11 @@ internal class CurvedTextDelegate {
     ): String {
         if (addEllipsis) {
             return TextUtils.ellipsize(
-                    text,
-                    paint,
-                    ellipsizedWidth.toFloat(),
-                    TextUtils.TruncateAt.END,
-                )
+                text,
+                paint,
+                ellipsizedWidth.toFloat(),
+                TextUtils.TruncateAt.END,
+            )
                 .toString()
         }
 

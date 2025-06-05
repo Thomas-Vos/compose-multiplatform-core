@@ -36,10 +36,6 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.withContext
 
@@ -57,7 +53,7 @@ internal interface RotaryHapticHandler {
 }
 
 @Composable
-internal fun rememberRotaryHapticHandler(
+internal actual fun rememberRotaryHapticHandler(
     scrollableState: ScrollableState,
     hapticsEnabled: Boolean,
 ): RotaryHapticHandler =
@@ -235,60 +231,6 @@ internal class CustomRotaryHapticHandler(
     }
 }
 
-/** Rotary haptic types */
-@JvmInline
-@VisibleForTesting
-internal value class RotaryHapticsType(private val type: Int) {
-    companion object {
-
-        /**
-         * A scroll ticking haptic. Similar to texture haptic - performed each time when a
-         * scrollable content is scrolled by a certain distance
-         */
-        public val ScrollTick: RotaryHapticsType = RotaryHapticsType(1)
-
-        /**
-         * An item focus (snap) haptic. Performed when a scrollable content is snapped to a specific
-         * item.
-         */
-        public val ScrollItemFocus: RotaryHapticsType = RotaryHapticsType(2)
-
-        /**
-         * A limit(overscroll) haptic. Performed when a list reaches the limit (start or end) and
-         * can't scroll further
-         */
-        public val ScrollLimit: RotaryHapticsType = RotaryHapticsType(3)
-    }
-}
-
-/** Remember disabled haptics handler */
-@Composable
-private fun rememberDisabledRotaryHapticHandler(): RotaryHapticHandler = remember {
-    object : RotaryHapticHandler {
-        override fun handleScrollHaptic(
-            timestamp: Long,
-            deltaInPixels: Float,
-            inputDeviceId: Int,
-            axis: Int,
-        ) {
-            // Do nothing
-        }
-
-        override fun handleSnapHaptic(
-            timestamp: Long,
-            deltaInPixels: Float,
-            inputDeviceId: Int,
-            axis: Int,
-        ) {
-            // Do nothing
-        }
-
-        override fun handleLimitHaptic(isStart: Boolean, inputDeviceId: Int, axis: Int) {
-            // Do nothing
-        }
-    }
-}
-
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @Composable
 private fun rememberPlatformRotaryHapticHandler(
@@ -354,9 +296,11 @@ private class RotaryHapticFeedbackProvider(
             RotaryHapticsType.ScrollItemFocus -> {
                 hapticConstants.scrollFocus?.let { view.performHapticFeedback(it) }
             }
+
             RotaryHapticsType.ScrollTick -> {
                 hapticConstants.scrollTick?.let { view.performHapticFeedback(it) }
             }
+
             RotaryHapticsType.ScrollLimit -> {
                 hapticConstants.scrollLimit?.let { view.performHapticFeedback(it) }
             }
@@ -392,28 +336,5 @@ private const val DEBUG = false
 private inline fun debugLog(generateMsg: () -> String) {
     if (DEBUG) {
         println("RotaryHaptics: ${generateMsg()}")
-    }
-}
-
-/**
- * Throttling events within specified timeframe. Only first and last events will be received.
- *
- * For example, a flow emits elements 1 to 30, with a 100ms delay between them:
- * ```
- * val flow = flow {
- *     for (i in 1..30) {
- *         delay(100)
- *         emit(i)
- *     }
- * }
- * ```
- *
- * With timeframe=1000 only those integers will be received: 1, 10, 20, 30 .
- */
-@VisibleForTesting
-internal fun <T> Flow<T>.throttleLatest(timeframe: Long): Flow<T> = flow {
-    conflate().collect {
-        emit(it)
-        delay(timeframe)
     }
 }

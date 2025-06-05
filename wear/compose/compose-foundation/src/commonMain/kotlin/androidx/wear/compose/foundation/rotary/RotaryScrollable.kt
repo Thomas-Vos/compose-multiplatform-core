@@ -16,10 +16,6 @@
 
 package androidx.wear.compose.foundation.rotary
 
-import android.os.Build
-import android.view.InputDevice
-import android.view.MotionEvent
-import android.view.ViewConfiguration
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
@@ -52,8 +48,9 @@ import androidx.compose.ui.input.rotary.RotaryScrollEvent
 import androidx.compose.ui.node.DelegatingNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.InspectorInfo
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
@@ -280,7 +277,7 @@ public object RotaryScrollableDefaults {
         hapticFeedbackEnabled: Boolean = true,
     ): RotaryScrollableBehavior {
         val isLowRes = isLowResInput()
-        val viewConfiguration = ViewConfiguration.get(LocalContext.current)
+        val viewConfiguration = LocalViewConfiguration.current
         val rotaryHaptics: RotaryHapticHandler =
             rememberRotaryHapticHandler(scrollableState, hapticFeedbackEnabled)
 
@@ -399,13 +396,6 @@ public object RotaryScrollableDefaults {
             )
         }
     }
-
-    /** Returns whether the input is Low-res (a bezel) or high-res (a crown/rsb). */
-    @Composable
-    private fun isLowResInput(): Boolean =
-        LocalContext.current.packageManager.hasSystemFeature(
-            "android.hardware.rotaryencoder.lowres"
-        )
 
     // These values represent the timeframe for a fling event. A bigger value is assigned
     // to low-res input due to the lower frequency of low-res rotary events.
@@ -982,19 +972,8 @@ internal class RotaryFlingHandler(
     private var flingTimestamp: Long = 0
 
     init {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            minFlingSpeed =
-                viewConfiguration
-                    .getScaledMinimumFlingVelocity(inputDeviceId, AxisScroll, RotaryInputSource)
-                    .toFloat()
-            maxFlingSpeed =
-                viewConfiguration
-                    .getScaledMaximumFlingVelocity(inputDeviceId, AxisScroll, RotaryInputSource)
-                    .toFloat()
-        } else {
-            minFlingSpeed = viewConfiguration.scaledMinimumFlingVelocity.toFloat()
-            maxFlingSpeed = viewConfiguration.scaledMaximumFlingVelocity.toFloat()
-        }
+        minFlingSpeed = viewConfiguration.minimumFlingVelocity
+        maxFlingSpeed = viewConfiguration.maximumFlingVelocity
 
         startFlingTracking(initialTimestamp)
     }
@@ -1553,7 +1532,7 @@ private class RotaryInputNode(
                         // TODO(b/397650406): Implement a more efficient way to reverse the scroll
                         // direction
                         delta = deltaInPixels * if (reverseDirection) -1f else 1f,
-                        inputDeviceId = event.inputDeviceId,
+                        inputDeviceId = 0,//event.inputDeviceId,
                         orientation = orientation,
                     )
                 }
@@ -1602,9 +1581,7 @@ private val ScrollableState.shouldDispatchOverscroll
 private val ScrollableState.atTheEdge
     get() = !canScrollForward || !canScrollBackward
 
-private const val AxisScroll = MotionEvent.AXIS_SCROLL
-
-private const val RotaryInputSource = InputDevice.SOURCE_ROTARY_ENCODER
+private const val AxisScroll = 26//MotionEvent.AXIS_SCROLL
 
 /** Debug logging that can be enabled. */
 private const val DEBUG = false
@@ -1614,3 +1591,7 @@ private inline fun debugLog(generateMsg: () -> String) {
         println("RotaryScroll: ${generateMsg()}")
     }
 }
+
+/** Returns whether the input is Low-res (a bezel) or high-res (a crown/rsb). */
+@Composable
+internal expect fun isLowResInput(): Boolean

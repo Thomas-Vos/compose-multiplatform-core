@@ -16,43 +16,16 @@
 
 package androidx.wear.compose.foundation
 
-import android.content.ContentResolver
-import android.database.ContentObserver
-import android.net.Uri
-import android.os.Looper
-import android.provider.Settings
-import android.util.Log
 import androidx.compose.runtime.CompositionLocal
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.compositionLocalWithComputedDefaultOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.os.HandlerCompat
 
 /**
  * [CompositionLocal] for global reduce-motion setting, which turns off animations and screen
  * movements. To use, call LocalReduceMotion.current, which returns a Boolean.
  */
-public val LocalReduceMotion: ProvidableCompositionLocal<Boolean> =
-    compositionLocalWithComputedDefaultOf {
-        if (cachedReducedMotion.value == null) {
-            val applicationContext = LocalContext.currentValue.applicationContext
-            val resolver = applicationContext.contentResolver
-            val contentObserver =
-                object : ContentObserver(HandlerCompat.createAsync(Looper.getMainLooper())) {
-                    override fun onChange(selfChange: Boolean, uri: Uri?) {
-                        cachedReducedMotion.value = getReducedMotionSettingValue(resolver)
-                    }
-                }
-            val reduceMotionUri = Settings.Global.getUriFor(REDUCE_MOTION)
-            resolver.registerContentObserver(reduceMotionUri, false, contentObserver)
-            cachedReducedMotion.value = getReducedMotionSettingValue(resolver)
-        }
-        cachedReducedMotion.value!!
-    }
+public expect val LocalReduceMotion: ProvidableCompositionLocal<Boolean>
 
 /**
  * [CompositionLocal] containing the background scrim color of [BasicSwipeToDismissBox].
@@ -84,20 +57,3 @@ public val LocalSwipeToDismissContentScrimColor: ProvidableCompositionLocal<Colo
  * Defaults to true
  */
 public val LocalScreenIsActive: ProvidableCompositionLocal<Boolean> = compositionLocalOf { true }
-
-private fun getReducedMotionSettingValue(resolver: ContentResolver): Boolean {
-    return try {
-        Settings.Global.getInt(resolver, REDUCE_MOTION, REDUCE_MOTION_DEFAULT) == 1
-    } catch (e: SecurityException) {
-        Log.w(TAG, "Failed to fetch reduce motion setting, using value: false", e)
-        false
-    }
-}
-
-// See framework's Settings.Global.Wearable#REDUCE_MOTION.
-private const val REDUCE_MOTION = "reduce_motion"
-private const val REDUCE_MOTION_DEFAULT = 0
-
-internal const val TAG = "CompositionLocals"
-
-private val cachedReducedMotion: MutableState<Boolean?> = mutableStateOf(null)

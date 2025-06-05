@@ -76,10 +76,11 @@ import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.core.util.Predicate
-import java.util.concurrent.atomic.AtomicReference
+import kotlin.jvm.JvmInline
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlinx.atomicfu.AtomicRef
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -236,7 +237,6 @@ public value class RevealActionType private constructor(public val value: Int) {
     "The SwipeToReveal component from the latest material library should be used instead. This will be removed in a future release of this library."
 )
 @ExperimentalWearFoundationApi
-@SuppressWarnings("PrimitiveInCollection")
 public fun createRevealAnchors(
     coveredAnchor: Float = 0f,
     revealingAnchor: Float = SwipeToRevealDefaults.RevealingRatio,
@@ -396,10 +396,10 @@ internal constructor(
     internal fun requireOffset(): Float = swipeableState.requireOffset()
 
     private fun confirmValueChangeAndReset(
-        confirmValueChange: Predicate<RevealValue>,
+        confirmValueChange: (RevealValue) -> Boolean,
         revealValue: RevealValue,
     ): Boolean {
-        val canChangeValue = confirmValueChange.test(revealValue)
+        val canChangeValue = confirmValueChange(revealValue)
         val currentState = this
         // Update the state if the reveal value is changing to a different value than Covered.
         if (canChangeValue && revealValue != RevealValue.Covered) {
@@ -422,7 +422,7 @@ internal constructor(
 
     /** A singleton instance to keep track of the [RevealState] which was modified the last time. */
     private object SingleSwipeCoordinator {
-        var lastUpdatedState: AtomicReference<RevealState?> = AtomicReference(null)
+        val lastUpdatedState: AtomicRef<RevealState?> = atomic(null)
     }
 }
 
@@ -867,9 +867,7 @@ private class DefaultGestureInclusion(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as DefaultGestureInclusion
+        if (other !is DefaultGestureInclusion) return false
 
         if (edgeZoneFraction != other.edgeZoneFraction) return false
         if (revealState != other.revealState) return false
@@ -888,16 +886,6 @@ private class DefaultGestureInclusion(
 private object BidirectionalGestureInclusion : GestureInclusion {
     override fun ignoreGestureStart(offset: Offset, layoutCoordinates: LayoutCoordinates): Boolean =
         false
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        return true
-    }
-
-    override fun hashCode(): Int {
-        return javaClass.hashCode()
-    }
 }
 
 @Composable

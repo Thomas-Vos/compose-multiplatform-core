@@ -16,9 +16,6 @@
 
 package androidx.wear.compose.foundation.lazy.layout
 
-import android.annotation.SuppressLint
-import android.os.Parcel
-import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 
@@ -82,26 +79,5 @@ internal fun LazyLayoutItemProvider.findIndexByKey(key: Any?, lastKnownIndex: In
     return lastKnownIndex
 }
 
-internal fun getDefaultLazyLayoutKey(index: Int): Any = DefaultLazyKey(index)
-
-@SuppressLint("BanParcelableUsage")
-private data class DefaultLazyKey(private val index: Int) : Parcelable {
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeInt(index)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object {
-        @Suppress("unused")
-        @JvmField
-        val CREATOR: Parcelable.Creator<DefaultLazyKey> =
-            object : Parcelable.Creator<DefaultLazyKey> {
-                override fun createFromParcel(parcel: Parcel) = DefaultLazyKey(parcel.readInt())
-
-                override fun newArray(size: Int) = arrayOfNulls<DefaultLazyKey?>(size)
-            }
-    }
-}
+internal fun getDefaultLazyLayoutKey(index: Int): Any =
+    androidx.compose.foundation.lazy.layout.getDefaultLazyLayoutKey(index)

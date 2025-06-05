@@ -33,62 +33,13 @@ import kotlin.math.max
  * (pre-composing next items in advance during the scrolling).
  */
 @Composable
-internal fun rememberDefaultPrefetchScheduler(): PrefetchScheduler {
+internal actual fun rememberDefaultPrefetchScheduler(): PrefetchScheduler {
     return if (RobolectricImpl != null) {
         RobolectricImpl
     } else {
         val view = LocalView.current
         remember(view) { AndroidPrefetchScheduler(view) }
     }
-}
-
-/**
- * Implementations of this interface accept prefetch requests via [schedulePrefetch] and decide when
- * to execute them in a way that will have minimal impact on user experience, e.g. during frame idle
- * time.
- *
- * Requests should be executed by invoking [PrefetchRequest.execute]. The implementation of
- * [PrefetchRequest.execute] will return `false` when all work for that request is done, or `true`
- * when it still has more to do but doesn't think it can complete it within
- * [PrefetchRequestScope.availableTimeNanos].
- */
-internal interface PrefetchScheduler {
-
-    /**
-     * Accepts a prefetch request. Implementations should find a time to execute them which will
-     * have minimal impact on user experience.
-     */
-    fun schedulePrefetch(prefetchRequest: PrefetchRequest)
-}
-
-/**
- * A request for prefetch which can be submitted to a [PrefetchScheduler] to execute during idle
- * time.
- */
-internal sealed interface PrefetchRequest {
-
-    /**
-     * Gives this request a chance to execute work. It should only do work if it thinks it can
-     * finish it within [PrefetchRequestScope.availableTimeNanos].
-     *
-     * @return whether this request has more work it wants to do, but ran out of time. `true`
-     *   indicates this request wants to have [execute] called again to do more work, while `false`
-     *   indicates its work is complete.
-     */
-    fun PrefetchRequestScope.execute(): Boolean
-}
-
-/**
- * Scope for [PrefetchRequest.execute], supplying info about how much time it has to execute
- * requests.
- */
-internal interface PrefetchRequestScope {
-
-    /**
-     * How much time is available to do prefetch work. Implementations of [PrefetchRequest] should
-     * do their best to fit their work into this time without going over.
-     */
-    fun availableTimeNanos(): Long
 }
 
 internal class AndroidPrefetchScheduler(private val view: View) :
@@ -118,9 +69,9 @@ internal class AndroidPrefetchScheduler(private val view: View) :
     override fun run() {
         if (
             prefetchRequests.isEmpty() ||
-                !prefetchScheduled ||
-                !isActive ||
-                view.windowVisibility != View.VISIBLE
+            !prefetchScheduled ||
+            !isActive ||
+            view.windowVisibility != View.VISIBLE
         ) {
             // incorrect input. ignore
             prefetchScheduled = false
