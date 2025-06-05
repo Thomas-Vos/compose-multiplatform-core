@@ -270,4 +270,5 @@ includeProject(":mpp")
 includeProject(":performance:performance-annotation")
 
 includeProject(":wear:compose:compose-foundation")
+includeProject(":wear:compose:compose-material")
 includeProject(":wear:compose:compose-material-core")

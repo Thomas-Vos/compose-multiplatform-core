@@ -62,6 +62,7 @@ import androidx.compose.ui.util.lerp
 import androidx.wear.compose.foundation.LocalReduceMotion
 import androidx.wear.compose.materialcore.screenHeightDp
 import androidx.wear.compose.materialcore.screenWidthDp
+import kotlin.jvm.JvmInline
 import kotlin.math.max
 import kotlin.math.pow
 import kotlinx.coroutines.coroutineScope
@@ -749,9 +750,7 @@ internal class PlaceholderBackgroundPainter(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as PlaceholderBackgroundPainter
+        if (other !is PlaceholderBackgroundPainter) return false
 
         if (painter != other.painter) return false
         if (placeholderState != other.placeholderState) return false

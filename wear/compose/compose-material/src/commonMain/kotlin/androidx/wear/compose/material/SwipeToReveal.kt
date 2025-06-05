@@ -16,7 +16,6 @@
 
 package androidx.wear.compose.material
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
@@ -93,10 +92,11 @@ import androidx.wear.compose.materialcore.CustomTouchSlopProvider
 import androidx.wear.compose.materialcore.SwipeableV2State
 import androidx.wear.compose.materialcore.swipeAnchors
 import androidx.wear.compose.materialcore.swipeableV2
-import java.util.concurrent.atomic.AtomicReference
-import java.util.function.Predicate
+import kotlin.jvm.JvmInline
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlinx.atomicfu.AtomicRef
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -417,7 +417,6 @@ public object SwipeToRevealDefaults {
      *   advised to keep the default [RevealDirection.RightToLeft] in order to preserve
      *   compatibility with the system wide swipe to dismiss gesture.
      */
-    @SuppressWarnings("PrimitiveInCollection")
     public fun createRevealAnchors(
         coveredAnchor: Float = 0f,
         revealingAnchor: Float = RevealingRatio,
@@ -826,7 +825,6 @@ public value class RevealActionType private constructor(public val value: Int) {
  *
  * @constructor Create a [RevealState].
  */
-@SuppressLint("PrimitiveInCollection")
 @ExperimentalWearMaterialApi
 public class RevealState
 internal constructor(
@@ -953,10 +951,10 @@ internal constructor(
     internal fun requireOffset(): Float = swipeableState.requireOffset()
 
     private fun confirmValueChangeAndReset(
-        confirmValueChange: Predicate<RevealValue>,
+        confirmValueChange: (RevealValue) -> Boolean,
         revealValue: RevealValue,
     ): Boolean {
-        val canChangeValue = confirmValueChange.test(revealValue)
+        val canChangeValue = confirmValueChange(revealValue)
         val currentState = this
         // Update the state if the reveal value is changing to a different value than Covered.
         if (canChangeValue && revealValue != RevealValue.Covered) {
@@ -979,7 +977,7 @@ internal constructor(
 
     /** A singleton instance to keep track of the [RevealState] which was modified the last time. */
     private object SingleSwipeCoordinator {
-        var lastUpdatedState: AtomicReference<RevealState?> = AtomicReference(null)
+        val lastUpdatedState: AtomicRef<RevealState?> = atomic(null)
     }
 }
 
@@ -997,7 +995,6 @@ internal constructor(
  * @param anchors A map of [RevealValue] to the fraction where the content can be revealed to reach
  *   that value. Each anchor should be between [0..1] which will be adjusted based on total width.
  */
-@SuppressLint("PrimitiveInCollection")
 @ExperimentalWearMaterialApi
 @Composable
 public fun rememberRevealState(
