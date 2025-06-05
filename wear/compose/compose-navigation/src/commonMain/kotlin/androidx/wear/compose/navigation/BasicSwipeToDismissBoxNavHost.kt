@@ -16,8 +16,6 @@
 
 package androidx.wear.compose.navigation
 
-import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.CubicBezierEasing
@@ -37,7 +35,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.SaveableStateHolder
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -57,6 +57,7 @@ import androidx.wear.compose.foundation.BasicSwipeToDismissBox
 import androidx.wear.compose.foundation.LocalReduceMotion
 import androidx.wear.compose.foundation.SwipeToDismissKeys
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun BasicSwipeToDismissBoxNavHost(
     navController: NavHostController,
@@ -117,7 +118,7 @@ internal fun BasicSwipeToDismissBoxNavHost(
                 "3. If the activity uses FLAG_ACTIVITY_NEW_TASK you should also set " +
                 "FLAG_ACTIVITY_CLEAR_TASK to maintain the backstack consistency."
 
-        Log.w(TAG, warningText)
+//        Log.w(TAG, warningText)
         // There's nothing to draw here, so we can return early to make sure "current" is always
         // available below this line
         return

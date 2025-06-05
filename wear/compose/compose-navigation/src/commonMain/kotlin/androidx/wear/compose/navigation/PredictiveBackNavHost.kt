@@ -16,9 +16,6 @@
 
 package androidx.wear.compose.navigation
 
-import android.os.Build
-import android.util.Log
-import androidx.activity.compose.PredictiveBackHandler
 import androidx.annotation.RequiresApi
 import androidx.collection.mutableObjectFloatMapOf
 import androidx.compose.animation.AnimatedContent
@@ -55,7 +52,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.PredictiveBackHandler
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -73,8 +72,8 @@ import androidx.wear.compose.foundation.hierarchicalFocusGroup
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 internal fun PredictiveBackNavHost(
     navController: NavHostController,
     graph: NavGraph,
@@ -131,7 +130,7 @@ internal fun PredictiveBackNavHost(
                 "3. If the activity uses FLAG_ACTIVITY_NEW_TASK you should also set " +
                 "FLAG_ACTIVITY_CLEAR_TASK to maintain the backstack consistency."
 
-        Log.w(TAG, warningText)
+//        Log.w(TAG, warningText)
         // There's nothing to draw here, so we can return early to make sure "current" is always
         // available below this line
         return
