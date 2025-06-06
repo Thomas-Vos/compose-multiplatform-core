@@ -16,6 +16,7 @@
 
 package androidx.wear.compose.foundation.lazy.layout
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 
@@ -79,5 +80,6 @@ internal fun LazyLayoutItemProvider.findIndexByKey(key: Any?, lastKnownIndex: In
     return lastKnownIndex
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 internal fun getDefaultLazyLayoutKey(index: Int): Any =
     androidx.compose.foundation.lazy.layout.getDefaultLazyLayoutKey(index)
