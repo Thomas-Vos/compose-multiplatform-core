@@ -60,6 +60,7 @@ kotlin {
                 implementation(project(":navigation:navigation-compose"))
 
                 implementation(project(":compose:ui:ui-backhandler"))
+                implementation(project(":lifecycle:lifecycle-runtime-compose"))
             }
         }
 
