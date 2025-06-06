@@ -62,7 +62,7 @@ class SwipeToRevealScreenshotTest {
 
     @Before
     fun setUp() {
-        SingleSwipeCoordinator.lastUpdatedState.set(null)
+        SingleSwipeCoordinator.lastUpdatedState.value = null
     }
 
     @Test

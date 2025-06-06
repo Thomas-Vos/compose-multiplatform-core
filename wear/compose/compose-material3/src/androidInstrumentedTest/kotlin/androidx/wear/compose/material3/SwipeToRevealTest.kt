@@ -87,7 +87,7 @@ class SwipeToRevealTest {
 
     @Before
     fun setUp() {
-        SingleSwipeCoordinator.lastUpdatedState.set(null)
+        SingleSwipeCoordinator.lastUpdatedState.value = null
     }
 
     @Test

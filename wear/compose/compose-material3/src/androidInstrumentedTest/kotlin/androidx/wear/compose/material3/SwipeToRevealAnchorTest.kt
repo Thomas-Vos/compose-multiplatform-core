@@ -58,7 +58,7 @@ class SwipeToRevealAnchorTest(val testParams: TestParams) {
 
     @Before
     fun setUp() {
-        SingleSwipeCoordinator.lastUpdatedState.set(null)
+        SingleSwipeCoordinator.lastUpdatedState.value = null
     }
 
     @Test

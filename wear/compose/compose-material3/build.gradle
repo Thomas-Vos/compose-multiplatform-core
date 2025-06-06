@@ -32,6 +32,7 @@ plugins {
     id("com.android.library")
     id("AndroidXComposePlugin")
     id("JetbrainsAndroidXPlugin")
+    id("kotlinx-atomicfu")
 }
 
 AndroidXComposePlugin.applyAndConfigureKotlinPlugin(project)
@@ -47,24 +48,36 @@ androidXComposeMultiplatform {
 
 kotlin {
     sourceSets {
-        androidMain {
+        commonMain {
             dependencies {
-                api("androidx.compose.foundation:foundation:1.8.0")
-                api("androidx.compose.runtime:runtime:1.8.0")
-                api("androidx.compose.ui:ui:1.8.2")
-                api("androidx.compose.ui:ui-text:1.8.0")
+                api(project(":compose:foundation:foundation"))
+                api(project(":compose:runtime:runtime"))
+                api(project(":compose:ui:ui"))
+                api(project(":compose:ui:ui-text"))
                 api(project(":wear:compose:compose-foundation"))
 
                 implementation(libs.kotlinCoroutinesCore)
-                implementation("androidx.compose.animation:animation:1.8.0")
-                implementation("androidx.compose.material:material-icons-core:1.7.7")
-                implementation("androidx.compose.material:material-ripple:1.7.7")
-                implementation("androidx.compose.ui:ui-util:1.8.0")
-                implementation("androidx.core:core:1.15.0")
+                implementation(project(":compose:animation:animation"))
+                implementation("org.jetbrains.compose.material:material-icons-core:1.6.11") {
+                    // exclude dependencies, because they override local projects when we build 0.0.0-* version
+                    // (see https://repo1.maven.org/maven2/org/jetbrains/compose/material/material-icons-core-desktop/1.6.11/material-icons-core-desktop-1.6.11.module)
+                    exclude group: "org.jetbrains.compose.ui"
+                }
+                implementation(project(":compose:material:material-ripple"))
+                implementation(project(":compose:ui:ui-util"))
                 implementation(project(":wear:compose:compose-material-core"))
+                implementation(project(":graphics:graphics-shapes"))
+                implementation(project(":compose:animation:animation-graphics"))
+
+                implementation(libs.atomicFu)
+                implementation(project(":annotation:annotation"))
+            }
+        }
+
+        androidMain {
+            dependencies {
+                implementation("androidx.core:core:1.15.0")
                 implementation("androidx.profileinstaller:profileinstaller:1.4.0")
-                implementation("androidx.graphics:graphics-shapes:1.0.1")
-                implementation("androidx.compose.animation:animation-graphics:1.8.0")
 
                 // Include the wear-sdk jar
                 compileOnly files("../../wear_sdk/wear-sdk.jar")
@@ -96,7 +109,67 @@ kotlin {
                 implementation(files("../../wear_sdk/wear-sdk.jar"))
             }
         }
+
+        skikoMain.dependsOn(commonMain)
+        desktopMain.dependsOn(skikoMain)
+        nonJvmMain.dependsOn(skikoMain)
+        webMain.dependsOn(nonJvmMain)
+        jsMain.dependsOn(webMain)
+        wasmJsMain.dependsOn(webMain)
+        nativeMain.dependsOn(nonJvmMain)
+
+        skikoTest.dependsOn(commonTest)
+        desktopTest.dependsOn(skikoTest)
+        nonJvmTest.dependsOn(skikoTest)
+        webTest.dependsOn(nonJvmTest)
+        jsTest.dependsOn(webTest)
+        wasmJsTest.dependsOn(webTest)
+        nativeTest.dependsOn(nonJvmTest)
+
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
+
+        desktopTest.dependencies {
+            implementation(libs.truth)
+            implementation(libs.junit)
+        }
     }
+}
+
+// This task updates the translations of the localizable strings in this module.
+// It obtains them from Android's base repository.
+tasks.register("updateTranslations", UpdateTranslationsTask.class) {
+    group = "localization"
+    gitRepo = "https://github.com/androidx/androidx"
+    repoResDirectories = [
+            "wear/compose/compose-material3/src/main/res"
+    ]
+    targetDirectory = project.file("src/skikoMain/kotlin/androidx/wear/compose/material3/l10n")
+    targetPackageName = "androidx.wear.compose.material3.l10n"
+    kotlinStringsPackageName = "androidx.wear.compose.material3.internal"
+    stringByResourceName = [
+            "wear_m3c_slider_decrease_content_description": "SliderDecreaseIconContentDescription",
+            "wear_m3c_slider_increase_content_description": "SliderIncreaseIconContentDescription",
+            "wear_m3c_alert_dialog_content_description_confirm_button": "AlertDialogContentDescriptionConfirmButton",
+            "wear_m3c_alert_dialog_content_description_dismiss_button": "AlertDialogContentDescriptionDismissButton",
+            "wear_m3c_open_on_phone_icon_content_description": "OpenOnPhoneContentDescriptionIcon",
+    ]
+    // This is all the locales translated by Compose on Android in the ui module:
+    // https://github.com/androidx/androidx/tree/androidx-main/wear/compose/compose-material3/src/main/res
+    // with the exception of
+    // - b+sr+Latn which doesn't appear to be supported by Java
+    // - en_XC which has weird invisible LRM characters, and the visible text is the same as for
+    //   en anyway.
+    locales = [
+            "en", "af", "am", "ar", "as", "az", "be", "bg", "bn", "bs", "ca", "cs", "da", "de",
+            "el", "en_AU", "en_CA", "en_GB", "en_IN", "es", "es_US", "et", "eu", "fa",
+            "fi", "fr", "fr_CA", "gl", "gu", "hi", "hr", "hu", "hy", "in", "is", "it", "iw",
+            "ja", "ka", "kk", "km", "kn", "ko", "ky", "lo", "lt", "lv", "mk", "ml", "mn", "mr",
+            "ms", "my", "nb", "ne", "nl", "or", "pa", "pl", "pt", "pt_BR", "pt_PT", "ro", "ru",
+            "si", "sk", "sl", "sq", "sr", "sv", "sw", "ta", "te", "th", "tl", "tr", "uk", "ur",
+            "uz", "vi", "zh_CN", "zh_HK", "zh_TW", "zu"
+    ]
 }
 
 android {
