@@ -132,20 +132,20 @@ public fun SwipeDismissableNavHost(
     state: SwipeDismissableNavHostState = rememberSwipeDismissableNavHostState(),
 ) {
 //    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-        PredictiveBackNavHost(
-            navController = navController,
-            graph = graph,
-            modifier = modifier,
-            userSwipeEnabled = userSwipeEnabled,
-        )
-//    } else {
-//        BasicSwipeToDismissBoxNavHost(
+//        PredictiveBackNavHost(
 //            navController = navController,
 //            graph = graph,
 //            modifier = modifier,
 //            userSwipeEnabled = userSwipeEnabled,
-//            state = state,
 //        )
+//    } else {
+        BasicSwipeToDismissBoxNavHost(
+            navController = navController,
+            graph = graph,
+            modifier = modifier,
+            userSwipeEnabled = userSwipeEnabled,
+            state = state,
+        )
 //    }
 }
 
