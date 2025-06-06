@@ -26,6 +26,7 @@ internal actual class PlatformDateFormat actual constructor(private val locale: 
     actual fun formatWithPattern(
         utcTimeMillis: Long,
         pattern: String,
+        cache: MutableMap<String, Any>
     ): String {
         TODO("not implemented")
     }
@@ -33,11 +34,17 @@ internal actual class PlatformDateFormat actual constructor(private val locale: 
     actual fun formatWithSkeleton(
         utcTimeMillis: Long,
         skeleton: String,
+        cache: MutableMap<String, Any>
     ): String {
         TODO("not implemented")
     }
 
-    actual fun parse(date: String, pattern: String, locale: CalendarLocale): CalendarDate? {
+    actual fun parse(
+        date: String,
+        pattern: String,
+        locale: CalendarLocale,
+        cache: MutableMap<String, Any>
+    ): CalendarDate? {
         TODO("not implemented")
     }
 
