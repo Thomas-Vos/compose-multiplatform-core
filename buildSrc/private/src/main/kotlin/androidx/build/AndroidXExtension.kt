@@ -392,6 +392,7 @@ abstract class AndroidXExtension(val project: Project) : ExtensionAware {
     }
 
     fun shouldEnforceKotlinStrictApiMode(): Boolean {
+        return false // TODO
         return !legacyDisableKotlinStrictApiMode &&
             shouldConfigureApiTasks()
     }

@@ -23,7 +23,8 @@
  */
 
 import androidx.build.AndroidXComposePlugin
-import androidx.build.JetbrainsAndroidXPlugin
+import org.jetbrains.androidx.build.JetBrainsAndroidXPlugin
+import org.jetbrains.androidx.build.UpdateTranslationsTask
 import androidx.build.LibraryType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -31,12 +32,12 @@ plugins {
     id("AndroidXPlugin")
     id("com.android.library")
     id("AndroidXComposePlugin")
-    id("JetbrainsAndroidXPlugin")
+    id("JetBrainsAndroidXPlugin")
     id("kotlinx-atomicfu")
 }
 
 AndroidXComposePlugin.applyAndConfigureKotlinPlugin(project)
-JetbrainsAndroidXPlugin.applyAndConfigure(project)
+JetBrainsAndroidXPlugin.applyAndConfigure(project)
 
 androidXComposeMultiplatform {
     android()
@@ -67,7 +68,7 @@ kotlin {
                 implementation(project(":compose:material:material-ripple"))
                 implementation(project(":compose:ui:ui-util"))
                 implementation(project(":wear:compose:compose-material-core"))
-                implementation(project(":graphics:graphics-shapes"))
+                implementation("androidx.graphics:graphics-shapes:1.1.0-beta01")
                 implementation(project(":compose:animation:animation-graphics"))
 
                 implementation(libs.atomicFu)

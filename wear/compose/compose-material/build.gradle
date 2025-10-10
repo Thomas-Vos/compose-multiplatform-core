@@ -23,19 +23,19 @@
  */
 
 import androidx.build.AndroidXComposePlugin
-import androidx.build.JetbrainsAndroidXPlugin
+import org.jetbrains.androidx.build.JetBrainsAndroidXPlugin
 import androidx.build.LibraryType
 
 plugins {
     id("AndroidXPlugin")
     id("com.android.library")
     id("AndroidXComposePlugin")
-    id("JetbrainsAndroidXPlugin")
+    id("JetBrainsAndroidXPlugin")
     id("kotlinx-atomicfu")
 }
 
 AndroidXComposePlugin.applyAndConfigureKotlinPlugin(project)
-JetbrainsAndroidXPlugin.applyAndConfigure(project)
+JetBrainsAndroidXPlugin.applyAndConfigure(project)
 
 androidXComposeMultiplatform {
     android()
