@@ -127,6 +127,13 @@ object JetBrainsPublication {
         "WINDOW" to listOf(
             ComposeComponent(":window:window-core", supportedPlatforms = ComposePlatforms.ALL_AOSP - ComposePlatforms.WINDOWS_NATIVE),
         ),
+        "WEAR_COMPOSE" to listOf(
+            ComposeComponent(":wear:compose:compose-foundation"),
+            ComposeComponent(":wear:compose:compose-material"),
+            ComposeComponent(":wear:compose:compose-material3"),
+            ComposeComponent(":wear:compose:compose-material-core"),
+            ComposeComponent(":wear:compose:compose-navigation")
+        )
     )
 
     fun mavenGroupFor(projectPath: String, androidxGroup: String?): String? {
