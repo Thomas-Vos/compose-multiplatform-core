@@ -22,6 +22,11 @@ jobs:
           sudo Xvfb :1 -screen 0 1920x1080x24 -extension RANDR +extension GLX &
           echo "DISPLAY=:1.0" >> $GITHUB_ENV
 
+      - name: Run Native Linux Tests
+        run: |
+          ./gradlew linuxX64Test \
+            --no-daemon --stacktrace
+
       - name: Run Desktop Tests
         run: |
           ./gradlew testDesktop \
